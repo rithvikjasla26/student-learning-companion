@@ -112,6 +112,8 @@ model StudentTopicProgress {
   topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, topicId])
+  @@index([studentId, nextDueAt]) // For scheduler to find due topics efficiently
+  @@index([studentId]) // For general student queries
   @@map("student_topic_progress")
 }
 
@@ -130,6 +132,7 @@ model CheckInSession {
   student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   widgets WidgetResponse[]
 
+  @@index([studentId, createdAt]) // For recent check-in lookups and daily check-in verification
   @@map("check_in_sessions")
 }
 

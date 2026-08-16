@@ -7,6 +7,8 @@ import checkinRoutes from './routes/checkin.routes.js';
 import widgetRoutes from './routes/widget.routes.js';
 import progressRoutes from './routes/progress.routes.js';
 import parentRoutes from './routes/parent.routes.js';
+import schedulerRoutes from './routes/scheduler.routes.js';
+import { initializeScheduler } from './jobs/scheduler.job.js';
 
 const app: Express = express();
 
@@ -30,6 +32,7 @@ app.use('/api/checkin', checkinRoutes);
 app.use('/api/widget', widgetRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/parent', parentRoutes);
+app.use('/api/scheduler', schedulerRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -51,6 +54,10 @@ app.listen(PORT, () => {
   console.log(`✓ Server is running on http://localhost:${PORT}`);
   console.log(`✓ Frontend URL: ${env.FRONTEND_URL}`);
   console.log(`✓ Environment: ${env.NODE_ENV}`);
+
+  // Initialize the nightly scheduler
+  console.log(`✓ Initializing scheduler (timezone: ${env.SCHEDULER_TIMEZONE})...`);
+  initializeScheduler();
 });
 
 export default app;
