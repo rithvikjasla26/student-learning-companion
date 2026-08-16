@@ -1,0 +1,217 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student?
+  parent    Parent?
+
+  @@map("users")
+}
+
+enum Role {
+  STUDENT
+  PARENT
+  ADMIN
+}
+
+model Student {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  name            String
+  gradeLevel      Int      // 6-12 for CBSE
+  subjects        String[] // Array of subject names
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  checkInSessions        CheckInSession[]
+  topicProgress          StudentTopicProgress[]
+  widgetResponses        WidgetResponse[]
+  badges                 StudentBadge[]
+  stats                  StudentStats?
+  linkedParentStudents   ParentStudent[]
+
+  @@map("students")
+}
+
+model Parent {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  linkedStudents ParentStudent[]
+
+  @@map("parents")
+}
+
+model ParentStudent {
+  id        String   @id @default(cuid())
+  parentId  String
+  studentId String
+  createdAt DateTime @default(now())
+
+  parent Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@map("parent_students")
+}
+
+model Topic {
+  id                String   @id @default(cuid())
+  subject           String   // e.g., "Science", "Math"
+  chapter           String   // e.g., "Photosynthesis"
+  subtopic          String   // e.g., "Light Reactions"
+  examWeight        Float    // 0-100, importance in exam
+  expectedConcepts  String[] // Array of key concepts to understand
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  studentProgress StudentTopicProgress[]
+  widgets         Widget[]
+
+  @@unique([subject, chapter, subtopic])
+  @@map("topics")
+}
+
+model StudentTopicProgress {
+  id              String   @id @default(cuid())
+  studentId       String
+  topicId         String
+  masteryScore    Int      @default(0) // 0-100
+  confidenceScore Int      @default(50) // 0-100
+  lastReviewedAt  DateTime?
+  nextDueAt       DateTime @default(now())
+  easeFactor      Float    @default(2.5) // SM-2 algorithm
+  intervalDays    Int      @default(1) // SM-2 algorithm
+  repetitions     Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, topicId])
+  @@map("student_topic_progress")
+}
+
+model CheckInSession {
+  id              String   @id @default(cuid())
+  studentId       String
+  date            DateTime @default(now())
+  topicId         String?
+  transcript      String   // What student typed/said
+  gapType         String?  // recall, structural, sequence, application, none
+  aiEvaluation    Json?    // Structured JSON from Claude
+  xpEarned        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  widgets WidgetResponse[]
+
+  @@map("check_in_sessions")
+}
+
+model Widget {
+  id              String   @id @default(cuid())
+  type            WidgetType // flashcard, fill_in_blank, drag_drop_label
+  contentJson     Json    // Non-hardcoded content from LLM or seed data
+  difficulty      String  @default("medium") // easy, medium, hard
+  topicId         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  topic    Topic?           @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  responses WidgetResponse[]
+
+  @@map("widgets")
+}
+
+enum WidgetType {
+  FLASHCARD
+  FILL_IN_BLANK
+  DRAG_DROP_LABEL
+}
+
+model WidgetResponse {
+  id              String   @id @default(cuid())
+  widgetId        String
+  studentId       String
+  sessionId       String?
+  studentAnswer   String
+  isCorrect       Boolean
+  timeSpentMs     Int      @default(0)
+  attemptCount    Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  widget  Widget   @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session CheckInSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@map("widget_responses")
+}
+
+model Badge {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  description    String
+  icon           String?  // URL to icon
+  criteriaType   String   // "check_in_count", "xp_threshold", "streak_days", "topic_mastery"
+  criteriaValue  Int      // e.g., 7 for "7-day streak"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  studentBadges StudentBadge[]
+
+  @@map("badges")
+}
+
+model StudentBadge {
+  id        String   @id @default(cuid())
+  studentId String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badge   Badge   @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, badgeId])
+  @@map("student_badges")
+}
+
+model StudentStats {
+  id              String   @id @default(cuid())
+  studentId       String   @unique
+  totalXp         Int      @default(0)
+  level           Int      @default(1)
+  streakCount     Int      @default(0)
+  lastCheckInDate DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_stats")
+}
