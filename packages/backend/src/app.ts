@@ -5,6 +5,8 @@ import env from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
 import checkinRoutes from './routes/checkin.routes.js';
 import widgetRoutes from './routes/widget.routes.js';
+import progressRoutes from './routes/progress.routes.js';
+import parentRoutes from './routes/parent.routes.js';
 
 const app: Express = express();
 
@@ -26,10 +28,8 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/auth', authRoutes);
 app.use('/api/checkin', checkinRoutes);
 app.use('/api/widget', widgetRoutes);
-
-// TODO: Add routes here
-// - Progress routes
-// - Parent routes
+app.use('/api/progress', progressRoutes);
+app.use('/api/parent', parentRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
