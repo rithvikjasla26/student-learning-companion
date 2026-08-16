@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthPage } from './pages/AuthPage';
 import { CheckInPage } from './pages/CheckInPage';
 import { ProgressPage } from './pages/ProgressPage';
+import { ParentDashboardPage } from './pages/ParentDashboardPage';
+import { LinkChildPage } from './pages/LinkChildPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Placeholder pages (to be built in later phases)
@@ -71,7 +73,7 @@ export default function App() {
         <Route
           path="/progress"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="STUDENT">
               <ProgressPage />
             </ProtectedRoute>
           }
@@ -79,8 +81,24 @@ export default function App() {
         <Route
           path="/checkin"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="STUDENT">
               <CheckInPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/parent"
+          element={
+            <ProtectedRoute requiredRole="PARENT">
+              <ParentDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/parent/link"
+          element={
+            <ProtectedRoute requiredRole="PARENT">
+              <LinkChildPage />
             </ProtectedRoute>
           }
         />
