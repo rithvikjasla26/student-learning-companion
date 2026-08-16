@@ -1,7 +1,8 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import env from './config/env.js';
+import authRoutes from './routes/auth.routes.js';
 
 const app: Express = express();
 
@@ -19,15 +20,22 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Routes
+app.use('/auth', authRoutes);
+
 // TODO: Add routes here
-// - Authentication routes
 // - Check-in routes
 // - Widget routes
 // - Progress routes
 // - Parent routes
 
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
 // Error handling middleware
-app.use((err: any, req: Request, res: Response, next: any) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
