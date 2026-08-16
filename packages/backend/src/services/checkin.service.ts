@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { llmService, LLMEvaluationResponse } from './llm.service.js';
+import { gamificationService } from './gamification.service.js';
 
 const prisma = new PrismaClient();
 
@@ -164,6 +165,10 @@ export const checkinService = {
       },
     });
 
+    // Update streak and check for badges
+    await gamificationService.updateStreak(studentId);
+    const newBadges = await gamificationService.checkBadgeUnlock(studentId);
+
     return {
       sessionId: session.id,
       mastery_score: evaluation.mastery_score,
@@ -171,6 +176,7 @@ export const checkinService = {
       gap_description: evaluation.gap_description,
       follow_up_question: evaluation.follow_up_question,
       xpEarned,
+      newBadges: newBadges.map((b) => ({ id: b.id, name: b.name })),
     };
   },
 

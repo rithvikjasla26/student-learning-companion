@@ -5,6 +5,7 @@ import { ProgressPage } from './pages/ProgressPage';
 import { ParentDashboardPage } from './pages/ParentDashboardPage';
 import { LinkChildPage } from './pages/LinkChildPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Placeholder pages (to be built in later phases)
 const DashboardPage = () => (
@@ -58,7 +59,8 @@ const HomePage = () => (
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -105,5 +107,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
