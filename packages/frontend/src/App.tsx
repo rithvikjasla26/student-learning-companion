@@ -1,15 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthPage } from './pages/AuthPage';
+import { CheckInPage } from './pages/CheckInPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Placeholder pages (to be built in later phases)
 const DashboardPage = () => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">Dashboard</h1>
-      <p className="text-gray-600">Coming soon in Phase 3...</p>
-    </div>
-  </div>
+  <Navigate to="/checkin" replace />
 );
 
 const HomePage = () => (
@@ -68,6 +64,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkin"
+          element={
+            <ProtectedRoute>
+              <CheckInPage />
             </ProtectedRoute>
           }
         />

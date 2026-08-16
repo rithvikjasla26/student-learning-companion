@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import env from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
+import checkinRoutes from './routes/checkin.routes.js';
 
 const app: Express = express();
 
@@ -22,9 +23,9 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/api/checkin', checkinRoutes);
 
 // TODO: Add routes here
-// - Check-in routes
 // - Widget routes
 // - Progress routes
 // - Parent routes
