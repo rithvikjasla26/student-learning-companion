@@ -1,85 +1,72 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { parentService } from '../services/parent.service.js';
+import { AuthError, AuthorizationError } from '../types/errors.js';
 
 export const parentController = {
   /**
    * Get list of linked children
    */
-  async getChildren(req: Request, res: Response): Promise<void> {
+  async getChildren(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const children = await parentService.getLinkedChildren(req.user.userId);
       res.json({ children });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || 'Failed to fetch children' });
+    } catch (error) {
+      next(error);
     }
   },
 
   /**
    * Get progress snapshot for a specific child
+   * Validation: Already done by validateParams middleware
    */
-  async getChildProgress(req: Request, res: Response): Promise<void> {
+  async getChildProgress(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const { studentId } = req.params;
-
-      if (!studentId) {
-        res.status(400).json({ error: 'studentId is required' });
-        return;
-      }
-
       const progress = await parentService.getChildProgress(req.user.userId, studentId);
       res.json(progress);
     } catch (error: any) {
-      res.status(error.message.includes('Access denied') ? 403 : 500).json({
-        error: error.message || 'Failed to fetch child progress',
-      });
+      if (error instanceof Error && error.message.includes('Access denied')) {
+        return next(new AuthorizationError(error.message));
+      }
+      next(error);
     }
   },
 
   /**
    * Generate an invite code for sharing
    */
-  async generateInviteCode(req: Request, res: Response): Promise<void> {
+  async generateInviteCode(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const result = await parentService.generateInviteCode(req.user.userId);
       res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || 'Failed to generate invite code' });
+    } catch (error) {
+      next(error);
     }
   },
 
   /**
-   * Link a child to parent (simplified: assumes student is verified)
-   * In production, would use invite codes with expiration
+   * Link a child to parent
+   * Validation: Already done by validateBody middleware
    */
-  async linkChild(req: Request, res: Response): Promise<void> {
+  async linkChild(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const { studentId } = req.body;
-
-      if (!studentId) {
-        res.status(400).json({ error: 'studentId is required' });
-        return;
-      }
-
       const result = await parentService.linkChildByCode(req.user.userId, studentId);
 
       if (!result.success) {
@@ -88,34 +75,29 @@ export const parentController = {
       }
 
       res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || 'Failed to link child' });
+    } catch (error) {
+      next(error);
     }
   },
 
   /**
    * Get weekly summary of child's progress
+   * Validation: Already done by validateParams middleware
    */
-  async getWeeklySummary(req: Request, res: Response): Promise<void> {
+  async getWeeklySummary(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const { studentId } = req.params;
-
-      if (!studentId) {
-        res.status(400).json({ error: 'studentId is required' });
-        return;
-      }
-
       const summary = await parentService.getWeeklySummary(req.user.userId, studentId);
       res.json(summary);
     } catch (error: any) {
-      res.status(error.message.includes('Access denied') ? 403 : 500).json({
-        error: error.message || 'Failed to fetch weekly summary',
-      });
+      if (error instanceof Error && error.message.includes('Access denied')) {
+        return next(new AuthorizationError(error.message));
+      }
+      next(error);
     }
   },
 };

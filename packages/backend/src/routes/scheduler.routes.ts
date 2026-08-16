@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { runNightlyScheduler } from '../jobs/scheduler.job.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, requireRole } from '../middleware/authMiddleware.js';
+import { AuthorizationError } from '../types/errors.js';
 
 const router = express.Router();
 
@@ -9,30 +10,25 @@ const router = express.Router();
  * POST /api/scheduler/run-now
  * Admin only - useful for testing and on-demand scheduling
  */
-router.post('/run-now', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    // Check if user is admin
-    if (req.user?.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Only admins can trigger the scheduler' });
+router.post(
+  '/run-now',
+  authMiddleware,
+  requireRole('ADMIN'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log('[API] Admin triggered manual scheduler run');
+      const summary = await runNightlyScheduler();
+
+      res.json({
+        success: true,
+        message: 'Scheduler executed successfully',
+        summary,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    console.log('[API] Admin triggered manual scheduler run');
-    const summary = await runNightlyScheduler();
-
-    res.json({
-      success: true,
-      message: 'Scheduler executed successfully',
-      summary,
-    });
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('[API] Scheduler endpoint error:', errorMsg);
-    res.status(500).json({
-      error: 'Failed to run scheduler',
-      details: errorMsg,
-    });
   }
-});
+);
 
 /**
  * Health check endpoint for scheduler

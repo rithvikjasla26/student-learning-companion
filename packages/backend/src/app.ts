@@ -9,6 +9,7 @@ import progressRoutes from './routes/progress.routes.js';
 import parentRoutes from './routes/parent.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
 import { initializeScheduler } from './jobs/scheduler.job.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware.js';
 
 const app: Express = express();
 
@@ -34,19 +35,11 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+// 404 handler (must be before error handler)
+app.use(notFoundHandler);
 
-// Error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    status: err.status || 500,
-  });
-});
+// Global error handler (must be last)
+app.use(errorHandler);
 
 const PORT = parseInt(env.BACKEND_PORT, 10) || 5000;
 

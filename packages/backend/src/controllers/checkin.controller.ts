@@ -1,46 +1,35 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { checkinService } from '../services/checkin.service.js';
+import { AuthError } from '../types/errors.js';
 
 export const checkinController = {
   /**
    * Start a new check-in session
    */
-  async startCheckIn(req: Request, res: Response): Promise<void> {
+  async startCheckIn(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const topic = await checkinService.startCheckIn(req.user.userId);
       res.json(topic);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || 'Failed to start check-in' });
+    } catch (error) {
+      next(error);
     }
   },
 
   /**
    * Submit explanation and get evaluation
+   * Validation: Already done by validateBody middleware
    */
-  async evaluateExplanation(req: Request, res: Response): Promise<void> {
+  async evaluateExplanation(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
       const { topicId, explanation } = req.body;
-
-      if (!topicId || !explanation) {
-        res.status(400).json({ error: 'topicId and explanation are required' });
-        return;
-      }
-
-      if (explanation.trim().length < 10) {
-        res.status(400).json({ error: 'Explanation must be at least 10 characters' });
-        return;
-      }
-
       const result = await checkinService.evaluateExplanation(
         req.user.userId,
         topicId,
@@ -48,29 +37,28 @@ export const checkinController = {
       );
 
       res.json(result);
-    } catch (error: any) {
-      console.error('Evaluation error:', error);
-      res.status(500).json({ error: error.message || 'Failed to evaluate explanation' });
+    } catch (error) {
+      next(error);
     }
   },
 
   /**
    * Get check-in history
+   * Validation: Already done by validateQuery middleware
    */
-  async getHistory(req: Request, res: Response): Promise<void> {
+  async getHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        throw new AuthError('Unauthorized');
       }
 
-      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-      const offset = parseInt(req.query.offset as string) || 0;
+      const limit = (req.query.limit as any) || 20;
+      const offset = (req.query.offset as any) || 0;
 
       const result = await checkinService.getCheckInHistory(req.user.userId, limit, offset);
       res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || 'Failed to fetch history' });
+    } catch (error) {
+      next(error);
     }
   },
 };
