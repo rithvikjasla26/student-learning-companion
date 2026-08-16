@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthPage } from './pages/AuthPage';
 import { CheckInPage } from './pages/CheckInPage';
+import { ProgressPage } from './pages/ProgressPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Placeholder pages (to be built in later phases)
 const DashboardPage = () => (
-  <Navigate to="/checkin" replace />
+  <Navigate to="/progress" replace />
 );
 
 const HomePage = () => (
@@ -64,6 +65,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/progress"
+          element={
+            <ProtectedRoute>
+              <ProgressPage />
             </ProtectedRoute>
           }
         />
