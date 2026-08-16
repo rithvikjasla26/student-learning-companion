@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String
+  class             Int       // 10, 11, 12, etc.
+  board             String    // "CBSE", "ICSE", etc.
+  subjects          String    @default("Physics,Chemistry,Biology") // Comma-separated
+  role              String    @default("student") // "student" or "parent"
+
+  // Gamification
+  totalXp           Int       @default(0)
+  currentStreak     Int       @default(0)
+  lastCheckinDate   DateTime?
+
+  // Relations
+  parent            Parent?   @relation("StudentToParent")
+  parentId          String?
+  topicProgress     StudentTopicProgress[]
+  checkinSessions   CheckInSession[]
+  badges            StudentBadge[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Parent {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String
+  role              String    @default("parent")
+
+  // Relations
+  students          Student[] @relation("StudentToParent")
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Topic {
+  id                String    @id @default(cuid())
+  subject           String    // "Physics", "Chemistry", "Biology"
+  chapter           String    // "Chapter 1: Light", etc.
+  subtopic          String    // "Reflection of Light"
+  examWeight        Int       @default(5) // Out of 100 for priority scoring
+  expectedConcepts  String    // JSON array as string: ["concept1", "concept2"]
+
+  // Relations
+  studentProgress   StudentTopicProgress[]
+  checkinSessions   CheckInSession[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([subject, chapter, subtopic])
+}
+
+model StudentTopicProgress {
+  id                String    @id @default(cuid())
+  studentId         String
+  topicId           String
+
+  // Learning metrics
+  masteryScore      Int       @default(0) // 0-100
+  confidenceRating  Int       @default(50) // 0-100, what student thinks they know
+  lastReviewedAt    DateTime?
+  nextDueAt         DateTime  @default(now())
+
+  // Spaced repetition (SM-2)
+  easeFactor        Float     @default(2.5)
+  intervalDays      Int       @default(1)
+
+  // Per-subject gamification
+  subjectXp         Int       @default(0)
+  subjectLevel      Int       @default(1)
+
+  // Relations
+  student           Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic             Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([studentId, topicId])
+  @@index([studentId])
+  @@index([topicId])
+  @@index([nextDueAt])
+}
+
+model CheckInSession {
+  id                String    @id @default(cuid())
+  studentId         String
+  topicId           String
+  date              DateTime  @default(now())
+
+  // Student response
+  transcript        String    // Student's explanation
+  rethinkTranscript String?   // Re-explanation after widget
+
+  // LLM evaluation
+  gapType           String?   // "recall", "structural", "sequence", "application", "none"
+  gapDescription    String?   // Description of identified gap
+  initialMastery    Int?      // Mastery score from initial eval
+  finalMastery      Int?      // Mastery score after re-confirmation
+
+  // Widget & feedback
+  widgetUsed        String?   // "flashcard", "fillInBlank", "dragDropLabel"
+  aiFeedback        String?   // LLM feedback on student explanation
+
+  // Gamification
+  xpEarned          Int       @default(0)
+
+  // Relations
+  student           Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic             Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([studentId])
+  @@index([topicId])
+  @@index([date])
+}
+
+model Badge {
+  id                String    @id @default(cuid())
+  name              String    @unique
+  description       String
+  icon              String    // Emoji or icon name
+
+  // Relations
+  students          StudentBadge[]
+
+  createdAt         DateTime  @default(now())
+}
+
+model StudentBadge {
+  id                String    @id @default(cuid())
+  studentId         String
+  badgeId           String
+  earnedAt          DateTime  @default(now())
+
+  // Relations
+  student           Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badge             Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, badgeId])
+  @@index([studentId])
+}
