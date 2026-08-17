@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { llmService } from './llm.service.js';
-import { SM2 } from '../utils/sm2.js';
+import { calculateSM2 } from '../utils/sm2.js';
 
 const prisma = new PrismaClient();
 
@@ -75,7 +75,7 @@ export const reconfirmService = {
     // Update SM-2 metrics based on new mastery score
     // Convert mastery (0-100) to SM-2 quality (0-5)
     const quality = Math.round((evaluation.mastery_score / 100) * 5);
-    const sm2Update = SM2.calculateMetrics(quality, currentProgress);
+    const sm2State = calculateSM2(currentProgress.easeFactor, quality, currentProgress.intervalDays);
 
     // Update StudentTopicProgress with new mastery score and SM-2 metrics
     await prisma.studentTopicProgress.update({
@@ -88,11 +88,11 @@ export const reconfirmService = {
       data: {
         masteryScore: evaluation.mastery_score,
         confidenceScore: Math.min(100, currentProgress.confidenceScore + (improved ? 10 : -5)), // Increase confidence if improved
-        easeFactor: sm2Update.easeFactor,
-        intervalDays: sm2Update.intervalDays,
-        repetitions: sm2Update.repetitions,
+        easeFactor: sm2State.easeFactor,
+        intervalDays: sm2State.interval,
+        repetitions: { increment: 1 }, // Increment repetition count after re-confirmation
         lastReviewedAt: new Date(),
-        nextDueAt: sm2Update.nextDueAt,
+        nextDueAt: sm2State.nextDueAt,
       },
     });
 
