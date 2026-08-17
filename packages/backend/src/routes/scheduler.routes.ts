@@ -1,7 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { runNightlyScheduler } from '../jobs/scheduler.job.js';
-import { authMiddleware, requireRole } from '../middleware/authMiddleware.js';
-import { AuthorizationError } from '../types/errors.js';
+import { schedulerService } from '../services/scheduler.service.js';
+import { authMiddleware, requireRole, requireStudent } from '../middleware/authMiddleware.js';
+import { AuthError } from '../types/errors.js';
 
 const router = express.Router();
 
@@ -23,6 +24,41 @@ router.post(
         success: true,
         message: 'Scheduler executed successfully',
         summary,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * Get next priority topic for student to study
+ * GET /api/scheduler/next-topic
+ * Student only - returns the top-priority due topic based on SM-2 scheduling
+ */
+router.get(
+  '/next-topic',
+  authMiddleware,
+  requireStudent,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AuthError('Unauthorized');
+      }
+
+      const topicData = await schedulerService.pickTodaysTopic(req.user.userId);
+
+      if (!topicData) {
+        return res.status(204).json({
+          success: true,
+          message: 'No topics due for review at this time',
+          topic: null,
+        });
+      }
+
+      res.json({
+        success: true,
+        topic: topicData,
       });
     } catch (error) {
       next(error);
