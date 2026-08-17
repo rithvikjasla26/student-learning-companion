@@ -82,4 +82,12 @@ export const parentService = {
     const response = await apiClient.post('/parent/link-child', { studentId });
     return response.data;
   },
+
+  /**
+   * Verify invite code and link student to parent
+   */
+  async verifyInviteCode(code: string, studentId: string): Promise<{ success: boolean; message: string; parentId?: string }> {
+    const response = await apiClient.post('/parent/verify-code', { code, studentId });
+    return response.data;
+  },
 };

@@ -122,10 +122,9 @@ export const parentService = {
   },
 
   /**
-   * Generate an invite code for parent to share with others
+   * Generate an invite code for parent to share with students
    * Code format: 6-character alphanumeric (e.g., "ABC123")
-   * Not used for linking parent->student, but for sharing opportunity
-   * In MVP, parent generates code to give to admin/teacher to link
+   * Code is stored in database with 7-day expiry
    */
   async generateInviteCode(parentId: string): Promise<{
     code: string;
@@ -141,14 +140,92 @@ export const parentService = {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + INVITE_CODE_VALID_DAYS);
 
-    // In a real app, store this in a database table (InviteCode model)
-    // For MVP, just return it without storing
-    // TODO: Implement InviteCode table if needed
+    // Store in database
+    await prisma.inviteCode.create({
+      data: {
+        code,
+        parentId,
+        expiresAt,
+      },
+    });
 
     return {
       code,
       expiresAt,
     };
+  },
+
+  /**
+   * Verify an invite code and link student to parent
+   * Returns success if code is valid (not expired, exists, and student not already linked)
+   */
+  async verifyInviteCode(code: string, studentId: string): Promise<{
+    success: boolean;
+    message: string;
+    parentId?: string;
+  }> {
+    try {
+      // Find the invite code
+      const inviteCode = await prisma.inviteCode.findUnique({
+        where: { code },
+      });
+
+      if (!inviteCode) {
+        return { success: false, message: 'Invalid invite code' };
+      }
+
+      // Check if expired
+      if (new Date() > inviteCode.expiresAt) {
+        return { success: false, message: 'Invite code has expired' };
+      }
+
+      // Check if already used
+      if (inviteCode.usedBy) {
+        return { success: false, message: 'Invite code has already been used' };
+      }
+
+      // Verify student exists
+      const student = await prisma.student.findUnique({
+        where: { id: studentId },
+      });
+
+      if (!student) {
+        return { success: false, message: 'Student not found' };
+      }
+
+      // Check if already linked
+      const existing = await prisma.parentStudent.findUnique({
+        where: {
+          parentId_studentId: { parentId: inviteCode.parentId, studentId },
+        },
+      });
+
+      if (existing) {
+        return { success: false, message: 'Student already linked to this parent' };
+      }
+
+      // Create the link
+      await prisma.parentStudent.create({
+        data: {
+          parentId: inviteCode.parentId,
+          studentId,
+        },
+      });
+
+      // Mark invite code as used
+      await prisma.inviteCode.update({
+        where: { code },
+        data: { usedBy: studentId },
+      });
+
+      return {
+        success: true,
+        message: 'Successfully linked to parent',
+        parentId: inviteCode.parentId,
+      };
+    } catch (error: any) {
+      return { success: false, message: `Failed to verify code: ${error.message}` };
+    }
   },
 
   /**

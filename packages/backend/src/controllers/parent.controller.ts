@@ -81,6 +81,21 @@ export const parentController = {
   },
 
   /**
+   * Verify invite code and link student to parent
+   * Validation: Already done by validateBody middleware
+   */
+  async verifyInviteCode(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { code, studentId } = req.body;
+
+      const result = await parentService.verifyInviteCode(code, studentId);
+      res.status(result.success ? 200 : 400).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Get weekly summary of child's progress
    * Validation: Already done by validateParams middleware
    */

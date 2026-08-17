@@ -60,6 +60,7 @@ model Parent {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   linkedStudents ParentStudent[]
+  inviteCodes    InviteCode[]
 
   @@map("parents")
 }
@@ -75,6 +76,21 @@ model ParentStudent {
 
   @@unique([parentId, studentId])
   @@map("parent_students")
+}
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  parentId  String
+  expiresAt DateTime
+  usedBy    String?  // Student ID that used this code
+  createdAt DateTime @default(now())
+
+  parent Parent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([parentId, expiresAt])
+  @@map("invite_codes")
 }
 
 model Topic {

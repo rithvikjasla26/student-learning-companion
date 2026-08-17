@@ -180,6 +180,22 @@ export const parentSchemas = {
         'any.required': 'Invite code is required',
       }),
   }),
+
+  verifyInviteCode: Joi.object({
+    code: Joi.string()
+      .length(6)
+      .uppercase()
+      .required()
+      .messages({
+        'string.length': 'Invite code must be exactly 6 characters',
+        'any.required': 'Invite code is required',
+      }),
+    studentId: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Student ID is required',
+      }),
+  }),
 };
 
 // ============ RECONFIRM SCHEMAS ============

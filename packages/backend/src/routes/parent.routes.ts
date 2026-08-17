@@ -22,5 +22,6 @@ router.get(
 );
 router.post('/invite-code', authMiddleware, parentController.generateInviteCode);
 router.post('/link-child', authMiddleware, validateBody(parentSchemas.linkChild), parentController.linkChild);
+router.post('/verify-code', validateBody(parentSchemas.verifyInviteCode), parentController.verifyInviteCode);
 
 export default router;
