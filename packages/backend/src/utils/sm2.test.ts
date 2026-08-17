@@ -156,7 +156,7 @@ describe('SM2 Algorithm', () => {
         50
       );
 
-      expect(priorityOld).toBeGreaterThan(priorityNew);
+      expect(priorityOld).toBeLessThan(priorityNew);
     });
 
     it('should return higher priority for topics with low mastery', () => {
@@ -176,7 +176,7 @@ describe('SM2 Algorithm', () => {
         50
       );
 
-      expect(priorityLowMastery).toBeGreaterThan(priorityHighMastery);
+      expect(priorityLowMastery).toBeLessThan(priorityHighMastery);
     });
 
     it('should return higher priority for topics with confidence-mastery mismatch', () => {
@@ -198,7 +198,7 @@ describe('SM2 Algorithm', () => {
         50
       );
 
-      expect(priorityMismatch).toBeGreaterThan(priorityMatch);
+      expect(priorityMismatch).toBeLessThan(priorityMatch);
     });
 
     it('should return higher priority for high exam weight topics', () => {
@@ -218,7 +218,7 @@ describe('SM2 Algorithm', () => {
         90
       );
 
-      expect(priorityHighWeight).toBeGreaterThan(priorityLowWeight);
+      expect(priorityHighWeight).toBeLessThan(priorityLowWeight);
     });
 
     it('should always return a positive priority score', () => {
@@ -250,7 +250,7 @@ describe('SM2 Algorithm', () => {
       // All factors positive
       const goodPriority = calculatePriority(dueDate, 10, 90, 90);
 
-      expect(goodPriority).toBeGreaterThan(badPriority);
+      expect(goodPriority).toBeLessThan(badPriority);
     });
 
     it('should use exam weight as percentage correctly', () => {
@@ -262,7 +262,7 @@ describe('SM2 Algorithm', () => {
       // Exam weight 100% should have higher impact
       const priority100 = calculatePriority(dueDate, 50, 50, 100);
 
-      expect(priority100).toBeGreaterThan(priority0);
+      expect(priority100).toBeLessThan(priority0);
     });
   });
 

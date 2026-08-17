@@ -82,20 +82,20 @@ export function calculatePriority(
   const now = new Date();
   const daysSinceDue = Math.max(0, (now.getTime() - nextDueAt.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Overdue weight (higher = more urgent)
-  const overdueWeight = 1 + daysSinceDue;
+  // Overdue weight (inverted: lower score for more urgent)
+  const overdueWeight = 1 / (1 + daysSinceDue);
 
-  // Mastery gap weight
+  // Mastery gap weight (inverted: lower score for lower mastery)
   const masteryGap = 100 - masteryScore;
-  const masteryWeight = 1 + masteryGap / 100;
+  const masteryWeight = 1 / (1 + masteryGap / 100);
 
-  // Confidence mismatch weight
+  // Confidence mismatch weight (inverted: lower score for higher mismatch)
   const confidenceMismatch = Math.abs(confidenceScore - masteryScore);
-  const confidenceWeight = 1 + confidenceMismatch / 100;
+  const confidenceWeight = 1 / (1 + confidenceMismatch / 100);
 
-  // Exam weight
-  const examWeightNorm = 1 + (examWeight / 100);
+  // Exam weight (inverted: lower score for higher exam weight)
+  const examWeightNorm = 1 / (1 + examWeight / 100);
 
-  // Combined priority score
+  // Combined priority score (lower = higher priority)
   return (overdueWeight * 0.5 + masteryWeight * 0.25 + confidenceWeight * 0.1 + examWeightNorm * 0.15);
 }
