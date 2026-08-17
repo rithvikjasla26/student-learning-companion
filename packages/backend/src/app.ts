@@ -11,6 +11,13 @@ import reconfirmRoutes from './routes/reconfirm.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
 import { initializeScheduler } from './jobs/scheduler.job.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware.js';
+import {
+  globalLimiter,
+  authLimiter,
+  studentApiLimiter,
+  checkinLimiter,
+  parentLinkLimiter,
+} from './middleware/rateLimiter.middleware.js';
 
 const app: Express = express();
 
@@ -23,19 +30,22 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Rate limiting - Apply global limiter to all routes
+app.use(globalLimiter);
+
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes
-app.use('/auth', authRoutes);
-app.use('/api/checkin', checkinRoutes);
-app.use('/api/widget', widgetRoutes);
-app.use('/api/progress', progressRoutes);
-app.use('/api/parent', parentRoutes);
-app.use('/api/reconfirm', reconfirmRoutes);
-app.use('/api/scheduler', schedulerRoutes);
+// Routes with specific rate limiters
+app.use('/auth', authLimiter, authRoutes); // Stricter auth rate limiting
+app.use('/api/checkin', checkinLimiter, checkinRoutes); // Per-student check-in limiting
+app.use('/api/widget', studentApiLimiter, widgetRoutes); // Standard API limiting
+app.use('/api/progress', studentApiLimiter, progressRoutes); // Standard API limiting
+app.use('/api/parent', parentLinkLimiter, parentRoutes); // Parent linking limiting
+app.use('/api/reconfirm', studentApiLimiter, reconfirmRoutes); // Standard API limiting
+app.use('/api/scheduler', studentApiLimiter, schedulerRoutes); // Standard API limiting
 
 // 404 handler (must be before error handler)
 app.use(notFoundHandler);
