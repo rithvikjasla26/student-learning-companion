@@ -1,8 +1,11 @@
 import { EvaluationResult } from '../services/checkin.service';
+import { pickWidgetByGapType } from '../services/widgetRouter';
 
 interface EvaluationFeedbackProps {
   evaluation: EvaluationResult;
-  onNext: () => void;
+  gapType: string;
+  onContinue: () => void;
+  onSkip: () => void;
 }
 
 const gapTypeColors = {
@@ -21,9 +24,17 @@ const gapTypeLabels = {
   none: 'No Gaps Detected',
 };
 
+const widgetTypeNames = {
+  flashcard: 'Flashcard',
+  fill_in_blank: 'Fill in the Blank',
+  drag_drop_label: 'Diagram Labeling',
+};
+
 export const EvaluationFeedback: React.FC<EvaluationFeedbackProps> = ({
   evaluation,
-  onNext,
+  gapType,
+  onContinue,
+  onSkip,
 }) => {
   const masteryPercentage = evaluation.mastery_score;
   const masteryColor =
@@ -32,6 +43,9 @@ export const EvaluationFeedback: React.FC<EvaluationFeedbackProps> = ({
       : masteryPercentage >= 50
         ? 'text-yellow-600'
         : 'text-red-600';
+
+  const widgetType = pickWidgetByGapType(gapType);
+  const widgetName = widgetTypeNames[widgetType as keyof typeof widgetTypeNames] || 'Practice';
 
   return (
     <div className="space-y-6">
@@ -91,13 +105,21 @@ export const EvaluationFeedback: React.FC<EvaluationFeedbackProps> = ({
         </div>
       )}
 
-      {/* Action Button */}
-      <button
-        onClick={onNext}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
-      >
-        Continue to Practice
-      </button>
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        <button
+          onClick={onContinue}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+        >
+          Practice with {widgetName}
+        </button>
+        <button
+          onClick={onSkip}
+          className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition"
+        >
+          Skip Practice
+        </button>
+      </div>
     </div>
   );
 };

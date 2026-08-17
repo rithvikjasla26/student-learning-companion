@@ -1,17 +1,59 @@
+import { useState } from 'react';
 import { Flashcard } from '../components/Flashcard';
 import { FillInBlank } from '../components/FillInBlank';
 import { DragDropLabel } from '../components/DragDropLabel';
 import { pickWidgetByGapType, generateSampleWidgetContent } from '../services/widgetRouter';
+import apiClient from '../services/api';
 
 interface WidgetPageProps {
   gapType: string;
   topicName: string;
-  onNext: () => void;
+  sessionId: string;
+  onComplete: (xpEarned: number) => void;
 }
 
-export const WidgetPage: React.FC<WidgetPageProps> = ({ gapType, topicName, onNext }) => {
+export const WidgetPage: React.FC<WidgetPageProps> = ({ gapType, topicName, sessionId, onComplete }) => {
   const widgetType = pickWidgetByGapType(gapType);
   const widgetContent = generateSampleWidgetContent(gapType, topicName);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState(0);
+
+  const handleAnswer = (_answer: string, isCorrect: boolean) => {
+    setTotalAttempts((prev) => prev + 1);
+    if (isCorrect) {
+      setCorrectAnswers((prev) => prev + 1);
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      // Calculate XP
+      const baseXP = 10;
+      const accuracy = totalAttempts > 0 ? correctAnswers / totalAttempts : 0;
+      const bonus = accuracy > 0.8 ? 5 : 0;
+      const totalXP = Math.min(baseXP + bonus, 15);
+
+      // Submit widget response
+      const response = await apiClient.post('/api/widgets/submit-response', {
+        sessionId,
+        widgetType,
+        correctAnswers,
+        totalAttempts,
+        accuracy,
+        xpEarned: totalXP,
+      });
+
+      const xpEarned = response.data.xpEarned || totalXP;
+      onComplete(xpEarned);
+    } catch (err: any) {
+      // Fallback to calculated XP if submission fails
+      const baseXP = 10;
+      const accuracy = totalAttempts > 0 ? correctAnswers / totalAttempts : 0;
+      const bonus = accuracy > 0.8 ? 5 : 0;
+      const totalXP = Math.min(baseXP + bonus, 15);
+      onComplete(totalXP);
+    }
+  };
 
   const renderWidget = () => {
     const content = widgetContent.content;
@@ -22,7 +64,7 @@ export const WidgetPage: React.FC<WidgetPageProps> = ({ gapType, topicName, onNe
           <Flashcard
             front={content.front}
             back={content.back}
-            onNext={onNext}
+            onNext={handleComplete}
           />
         );
 
@@ -32,8 +74,8 @@ export const WidgetPage: React.FC<WidgetPageProps> = ({ gapType, topicName, onNe
             sentence={content.sentence}
             blankWord={content.blankWord}
             hints={content.hints || []}
-            onAnswer={() => {}} // Will implement in Phase 5
-            onNext={onNext}
+            onAnswer={handleAnswer}
+            onNext={handleComplete}
           />
         );
 
@@ -43,8 +85,8 @@ export const WidgetPage: React.FC<WidgetPageProps> = ({ gapType, topicName, onNe
             imageUrl={content.imageUrl}
             labels={content.labels || []}
             zones={content.zones || []}
-            onComplete={() => {}} // Will implement in Phase 5
-            onNext={onNext}
+            onComplete={handleComplete}
+            onNext={handleComplete}
           />
         );
 

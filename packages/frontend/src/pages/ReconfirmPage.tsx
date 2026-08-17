@@ -4,12 +4,16 @@ import apiClient from '../services/api';
 interface ReconfirmPageProps {
   sessionId: string;
   topicName: string;
-  onComplete: (xpEarned: number, improved: boolean) => void;
+  gapDescription?: string;
+  initialMastery?: number;
+  onComplete: (data: { xpEarned: number; improved: boolean; masteryScoreChange: number }) => void;
 }
 
 export const ReconfirmPage: React.FC<ReconfirmPageProps> = ({
   sessionId,
   topicName,
+  gapDescription,
+  initialMastery = 0,
   onComplete,
 }) => {
   const [explanation, setExplanation] = useState('');
@@ -103,7 +107,14 @@ export const ReconfirmPage: React.FC<ReconfirmPageProps> = ({
 
             {/* Action Button */}
             <button
-              onClick={() => onComplete(feedback.xpEarned, feedback.improved)}
+              onClick={() => {
+                const masteryChange = feedback.mastery_score - initialMastery;
+                onComplete({
+                  xpEarned: feedback.xpEarned,
+                  improved: feedback.improved,
+                  masteryScoreChange: masteryChange,
+                });
+              }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
             >
               Continue to Dashboard
@@ -118,7 +129,7 @@ export const ReconfirmPage: React.FC<ReconfirmPageProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-8">
-          <div className="flex justify-between items-start mb-2">
+          <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Let's Check Your Understanding</h1>
               <p className="text-gray-600 mt-2">
@@ -134,7 +145,14 @@ export const ReconfirmPage: React.FC<ReconfirmPageProps> = ({
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 mt-8">
+          {gapDescription && (
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-sm font-semibold text-gray-700 mb-1">Area to Focus On:</p>
+              <p className="text-gray-700">{gapDescription}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Your Updated Explanation

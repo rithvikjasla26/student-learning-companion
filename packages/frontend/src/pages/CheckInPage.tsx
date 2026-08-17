@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { checkinService, Topic, EvaluationResult } from '../services/checkin.service';
 import { EvaluationFeedback } from '../components/EvaluationFeedback';
 import { AudioRecorder } from '../components/AudioRecorder';
+import { WidgetPage } from './WidgetPage';
+import { ReconfirmPage } from './ReconfirmPage';
 
-type CheckInStep = 'loading' | 'input' | 'feedback';
+type CheckInStep = 'loading' | 'input' | 'feedback' | 'widget' | 'reconfirm' | 'results';
 
 export const CheckInPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const [step, setStep] = useState<CheckInStep>('loading');
   const [topic, setTopic] = useState<Topic | null>(null);
   const [explanation, setExplanation] = useState('');
@@ -16,6 +21,14 @@ export const CheckInPage: React.FC = () => {
   const [audioDuration, setAudioDuration] = useState(0);
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [useVoiceInput, setUseVoiceInput] = useState(false);
+
+  // Multi-step flow state
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [checkInXp, setCheckInXp] = useState(0);
+  const [widgetXp, setWidgetXp] = useState(0);
+  const [reconfirmXp, setReconfirmXp] = useState(0);
+  const [initialMastery, setInitialMastery] = useState(0);
+  const [finalMastery, setFinalMastery] = useState(0);
 
   // Load topic on mount
   useEffect(() => {
@@ -50,6 +63,11 @@ export const CheckInPage: React.FC = () => {
     try {
       const result = await checkinService.evaluateExplanation(topic.topicId, explanation);
       setEvaluation(result);
+      setCheckInXp(result.xpEarned);
+      setInitialMastery(result.mastery_score);
+      setFinalMastery(result.mastery_score);
+      // Extract sessionId from result if available, otherwise generate a placeholder
+      setSessionId(result.sessionId || `session_${Date.now()}`);
       setStep('feedback');
     } catch (err: any) {
       setError(err.message || 'Failed to evaluate explanation');
@@ -58,12 +76,37 @@ export const CheckInPage: React.FC = () => {
     }
   };
 
+  const handleContinueToWidget = () => {
+    setStep('widget');
+  };
+
+  const handleWidgetComplete = (xpEarned: number) => {
+    setWidgetXp(xpEarned);
+    setStep('reconfirm');
+  };
+
+  const handleReconfirmComplete = (data: { xpEarned: number; improved: boolean; masteryScoreChange: number }) => {
+    setReconfirmXp(data.xpEarned);
+    setFinalMastery((prev) => prev + data.masteryScoreChange);
+    setStep('results');
+  };
+
+  const handleBackToProgress = () => {
+    navigate('/progress');
+  };
+
   const handleStartNew = () => {
     setExplanation('');
     setEvaluation(null);
     setAudioBlob(null);
     setAudioDuration(0);
     setUseVoiceInput(false);
+    setSessionId(null);
+    setCheckInXp(0);
+    setWidgetXp(0);
+    setReconfirmXp(0);
+    setInitialMastery(0);
+    setFinalMastery(0);
     loadTopic();
   };
 
@@ -253,8 +296,83 @@ export const CheckInPage: React.FC = () => {
             <div>
               <EvaluationFeedback
                 evaluation={evaluation}
-                onNext={handleStartNew}
+                gapType={evaluation.gap_type}
+                onContinue={handleContinueToWidget}
+                onSkip={handleStartNew}
               />
+            </div>
+          )}
+
+          {step === 'widget' && evaluation && topic && sessionId && (
+            <WidgetPage
+              gapType={evaluation.gap_type}
+              topicName={topic.subtopic}
+              sessionId={sessionId}
+              onComplete={handleWidgetComplete}
+            />
+          )}
+
+          {step === 'reconfirm' && evaluation && topic && sessionId && (
+            <ReconfirmPage
+              sessionId={sessionId}
+              topicName={topic.subtopic}
+              gapDescription={evaluation.gap_description}
+              initialMastery={initialMastery}
+              onComplete={handleReconfirmComplete}
+            />
+          )}
+
+          {step === 'results' && evaluation && topic && (
+            <div className="space-y-6">
+              {/* Results Header */}
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Learning Session Complete!</h2>
+                <p className="text-gray-600">Great job completing your check-in flow</p>
+              </div>
+
+              {/* Total XP Earned */}
+              <div className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-lg p-6 text-center">
+                <p className="text-sm text-gray-600 mb-2">Total XP Earned</p>
+                <p className="text-4xl font-bold text-yellow-600">+{checkInXp + widgetXp + reconfirmXp} XP</p>
+                <div className="flex justify-around mt-4 text-sm">
+                  <div>
+                    <p className="text-gray-600">Check-in</p>
+                    <p className="font-bold text-blue-600">+{checkInXp}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Widget</p>
+                    <p className="font-bold text-green-600">+{widgetXp}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Reconfirm</p>
+                    <p className="font-bold text-purple-600">+{reconfirmXp}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mastery Improvement */}
+              <div className="bg-indigo-50 border-l-4 border-indigo-500 p-6">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Mastery Score Progress</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600">Initial</p>
+                    <p className="text-2xl font-bold text-gray-900">{initialMastery}%</p>
+                  </div>
+                  <div className="text-2xl text-indigo-500">→</div>
+                  <div>
+                    <p className="text-gray-600">Final</p>
+                    <p className="text-2xl font-bold text-indigo-600">{finalMastery}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={handleBackToProgress}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+              >
+                Back to Progress
+              </button>
             </div>
           )}
         </div>
