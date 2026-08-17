@@ -8,12 +8,12 @@
 
 ## EXECUTIVE SUMMARY
 
-**Overall Status:** 🟡 **70% Complete - Critical Bugs Block Production**
+**Overall Status:** 🟡 **75% Complete - 2 Critical Bugs Remaining**
 
-The codebase implements the majority of MVP features but has **3 blocking issues** that prevent end-to-end functionality:
-1. SM2 reference error in reconfirm service (runtime crash)
+The codebase implements the majority of MVP features but has **2 blocking issues** remaining:
+1. ~~SM2 reference error in reconfirm service~~ ✅ **FIXED**
 2. Widget & re-confirm workflow not integrated into check-in flow
-3. Missing API endpoint for top-priority topic scheduler
+3. ~~Missing API endpoint for top-priority topic scheduler~~ ✅ **FIXED**
 
 ---
 
@@ -231,24 +231,22 @@ Needs:
 - Route to ReconfirmPage after widget completion
 - Update CheckInPage flow logic
 
-### 🔴 Issue #3: Missing Priority Topic Endpoint (BLOCKING)
-**Severity:** CRITICAL
-**Impact:** Students can't get recommended topics
-**Location:** Needs new route in `packages/backend/src/routes/scheduler.routes.ts`
-**Fix Type:** Expose existing function as endpoint
-**Estimated Effort:** 10 minutes
+### ✅ Issue #3: Missing Priority Topic Endpoint (RESOLVED)
+**Status:** FIXED in commits c7b82f8, efaa3f1, ab00f57, 77acf65, 053b996
+**Impact:** Students can now get recommended topics via SM-2 scheduling
+**Location:** `packages/backend/src/routes/scheduler.routes.ts`
 
-```typescript
-// Add to scheduler.routes.ts:
-router.get(
-  '/next-topic',
-  authMiddleware,
-  async (req: Request, res: Response) => {
-    const topic = await schedulerService.pickTodaysTopic(req.user.userId);
-    res.json(topic);
-  }
-);
-```
+**Solution Implemented:**
+- Added `GET /api/scheduler/next-topic` endpoint (student-authenticated)
+- Created `schedulerController.getNextTopic()` for clean separation of concerns
+- Created frontend service: `packages/frontend/src/services/scheduler.service.ts`
+- Added unit tests for priority calculation validation
+- Updated README with endpoint documentation
+
+**Result:**
+- Endpoint returns top-priority topic based on 4-factor weighting (due-ness, mastery gap, confidence-mismatch, exam weight)
+- Returns `null` (204 status) if no topics are due
+- Frontend can call `schedulerService.getNextTopic()` to get recommendations
 
 ### ⚠️ Issue #4: Widget Completion XP Not Awarded
 **Severity:** HIGH
