@@ -191,6 +191,10 @@ npx prisma studio
 ### Widgets
 - `POST /api/widget/submit` - Submit widget response, get scoring feedback
 
+### Scheduler (Spaced Repetition)
+- `GET /api/scheduler/next-topic` - Get top-priority topic for student (SM-2 based)
+- `POST /api/scheduler/run-now` - Admin: Manually trigger nightly scheduler job
+
 ### Progress
 - `GET /api/progress/overview` - XP, level, streak, badges summary
 - `GET /api/progress/topics` - Detailed progress per topic
