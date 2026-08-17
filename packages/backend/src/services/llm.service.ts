@@ -147,6 +147,55 @@ Respond ONLY with valid JSON, no additional text.`;
   },
 
   /**
+   * Transcribe audio to text using Whisper API
+   * For MVP, this uses a placeholder that returns the audio metadata
+   * In production, integrate with OpenAI Whisper or similar service
+   */
+  async transcribeAudio(
+    audioPath: string,
+    language: string = 'en'
+  ): Promise<{
+    transcript: string;
+    confidence: number;
+    language: string;
+    duration: number;
+  }> {
+    try {
+      // Check if file exists
+      if (!fs.existsSync(audioPath)) {
+        throw new Error('Audio file not found');
+      }
+
+      const stats = fs.statSync(audioPath);
+      const fileSizeInMB = stats.size / (1024 * 1024);
+
+      // Validate file size (max 25MB for typical Whisper implementations)
+      if (fileSizeInMB > 25) {
+        throw new Error('Audio file too large (max 25MB)');
+      }
+
+      // TODO: Integrate with OpenAI Whisper API or similar
+      // For MVP, return a placeholder response
+      console.log(`🎤 Audio file received: ${audioPath} (${fileSizeInMB.toFixed(2)}MB)`);
+      console.log(`   Language: ${language}`);
+      console.log(`   Note: Whisper transcription not yet integrated`);
+
+      // Placeholder: Return empty transcript indicating audio was received but not transcribed
+      return {
+        transcript: '[Audio received - transcription pending]',
+        confidence: 0,
+        language,
+        duration: Math.floor(fileSizeInMB * 10), // Rough estimate
+      };
+    } catch (error) {
+      console.error('Audio transcription failed:', error);
+      throw new Error(
+        `Failed to transcribe audio: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  },
+
+  /**
    * Re-evaluate student's re-confirmation explanation (using Sonnet for deeper reasoning)
    */
   async evaluateReconfirmation(

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { checkinService } from '../services/checkin.service.js';
+import { llmService } from '../services/llm.service.js';
 import { AuthError } from '../types/errors.js';
 
 export const checkinController = {
@@ -57,6 +58,45 @@ export const checkinController = {
 
       const result = await checkinService.getCheckInHistory(req.user.userId, limit, offset);
       res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Upload and transcribe audio
+   * Audio is optional - students can use text input instead
+   */
+  async uploadAudio(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AuthError('Unauthorized');
+      }
+
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'No audio file uploaded',
+        });
+        return;
+      }
+
+      // Transcribe the audio file
+      const transcription = await llmService.transcribeAudio(req.file.path);
+
+      res.json({
+        success: true,
+        file: {
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+        },
+        transcription: {
+          text: transcription.transcript,
+          confidence: transcription.confidence,
+          language: transcription.language,
+        },
+      });
     } catch (error) {
       next(error);
     }

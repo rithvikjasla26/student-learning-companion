@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { checkinService, Topic, EvaluationResult } from '../services/checkin.service';
 import { EvaluationFeedback } from '../components/EvaluationFeedback';
+import { AudioRecorder } from '../components/AudioRecorder';
 
 type CheckInStep = 'loading' | 'input' | 'feedback';
 
@@ -11,6 +12,10 @@ export const CheckInPage: React.FC = () => {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [useVoiceInput, setUseVoiceInput] = useState(false);
 
   // Load topic on mount
   useEffect(() => {
@@ -56,7 +61,33 @@ export const CheckInPage: React.FC = () => {
   const handleStartNew = () => {
     setExplanation('');
     setEvaluation(null);
+    setAudioBlob(null);
+    setAudioDuration(0);
+    setUseVoiceInput(false);
     loadTopic();
+  };
+
+  const handleAudioRecorded = (blob: Blob, duration: number) => {
+    setAudioBlob(blob);
+    setAudioDuration(duration);
+  };
+
+  const handleUploadAudio = async () => {
+    if (!audioBlob) return;
+
+    setIsUploadingAudio(true);
+    setError(null);
+
+    try {
+      const result = await checkinService.uploadAudio(audioBlob, audioDuration);
+      if (result.transcription && result.transcription.text) {
+        setExplanation(result.transcription.text);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload audio');
+    } finally {
+      setIsUploadingAudio(false);
+    }
   };
 
   if (!topic && step === 'loading') {
@@ -111,22 +142,83 @@ export const CheckInPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Explanation Input */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Explain what you learned (in your own words)
-                </label>
-                <textarea
-                  value={explanation}
-                  onChange={(e) => setExplanation(e.target.value)}
-                  placeholder="I studied... and I learned that... because..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
-                  rows={6}
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  {explanation.length} characters • Minimum 10 characters
-                </p>
+              {/* Input Method Selection */}
+              <div className="flex gap-4 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setUseVoiceInput(false)}
+                  className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+                    !useVoiceInput
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  📝 Text Input
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUseVoiceInput(true)}
+                  className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+                    useVoiceInput
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  🎤 Voice Input
+                </button>
               </div>
+
+              {/* Explanation Input - Text */}
+              {!useVoiceInput && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Explain what you learned (in your own words)
+                  </label>
+                  <textarea
+                    value={explanation}
+                    onChange={(e) => setExplanation(e.target.value)}
+                    placeholder="I studied... and I learned that... because..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+                    rows={6}
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    {explanation.length} characters • Minimum 10 characters
+                  </p>
+                </div>
+              )}
+
+              {/* Voice Input */}
+              {useVoiceInput && (
+                <div className="space-y-4">
+                  <AudioRecorder
+                    onAudioRecorded={handleAudioRecorded}
+                    isUploading={isUploadingAudio}
+                  />
+                  {audioBlob && (
+                    <button
+                      type="button"
+                      onClick={handleUploadAudio}
+                      disabled={isUploadingAudio}
+                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition"
+                    >
+                      {isUploadingAudio ? (
+                        <span className="flex items-center justify-center">
+                          <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                          Transcribing...
+                        </span>
+                      ) : (
+                        '✓ Use This Recording'
+                      )}
+                    </button>
+                  )}
+                  {explanation && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm font-semibold text-green-800 mb-2">✓ Transcription:</p>
+                      <p className="text-gray-700 text-sm">{explanation}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Error Message */}
               {error && (
