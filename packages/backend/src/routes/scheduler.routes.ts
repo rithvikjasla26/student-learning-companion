@@ -1,8 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { runNightlyScheduler } from '../jobs/scheduler.job.js';
-import { schedulerService } from '../services/scheduler.service.js';
+import { schedulerController } from '../controllers/scheduler.controller.js';
 import { authMiddleware, requireRole, requireStudent } from '../middleware/authMiddleware.js';
-import { AuthError } from '../types/errors.js';
 
 const router = express.Router();
 
@@ -40,30 +39,7 @@ router.get(
   '/next-topic',
   authMiddleware,
   requireStudent,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user) {
-        throw new AuthError('Unauthorized');
-      }
-
-      const topicData = await schedulerService.pickTodaysTopic(req.user.userId);
-
-      if (!topicData) {
-        return res.status(204).json({
-          success: true,
-          message: 'No topics due for review at this time',
-          topic: null,
-        });
-      }
-
-      res.json({
-        success: true,
-        topic: topicData,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  schedulerController.getNextTopic
 );
 
 /**
