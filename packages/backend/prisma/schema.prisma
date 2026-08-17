@@ -134,16 +134,17 @@ model StudentTopicProgress {
 }
 
 model CheckInSession {
-  id              String   @id @default(cuid())
-  studentId       String
-  date            DateTime @default(now())
-  topicId         String?
-  transcript      String   // What student typed/said
-  gapType         String?  // recall, structural, sequence, application, none
-  aiEvaluation    Json?    // Structured JSON from Claude
-  xpEarned        Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  studentId               String
+  date                    DateTime @default(now())
+  topicId                 String?
+  transcript              String   // What student typed/said
+  gapType                 String?  // recall, structural, sequence, application, none
+  aiEvaluation            Json?    // Structured JSON from Claude (initial evaluation)
+  reconfirmationEvaluation Json?   // Structured JSON from Claude (after widget practice)
+  xpEarned                Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   widgets WidgetResponse[]

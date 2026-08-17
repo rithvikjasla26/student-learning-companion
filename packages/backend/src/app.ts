@@ -7,6 +7,7 @@ import checkinRoutes from './routes/checkin.routes.js';
 import widgetRoutes from './routes/widget.routes.js';
 import progressRoutes from './routes/progress.routes.js';
 import parentRoutes from './routes/parent.routes.js';
+import reconfirmRoutes from './routes/reconfirm.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
 import { initializeScheduler } from './jobs/scheduler.job.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware.js';
@@ -33,6 +34,7 @@ app.use('/api/checkin', checkinRoutes);
 app.use('/api/widget', widgetRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/parent', parentRoutes);
+app.use('/api/reconfirm', reconfirmRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 
 // 404 handler (must be before error handler)
