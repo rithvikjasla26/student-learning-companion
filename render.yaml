@@ -1,0 +1,70 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: student-companion-db
+    plan: free
+    ipAllowList: []
+    env: docker
+    healthCheck:
+      path: /
+    envVars:
+      - key: POSTGRES_DB
+        value: student_companion
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+    disk:
+      name: student-companion-postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
+
+  # Backend Service (Express.js)
+  - type: web
+    name: student-companion-backend
+    plan: free
+    runtime: docker
+    dockerfilePath: packages/backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          name: student-companion-db
+          type: pserv
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5000"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        fromService:
+          name: student-companion-frontend
+          type: web
+          property: url
+    autoDeploy: true
+    maxInstances: 3
+    memoryMB: 512
+
+  # Frontend Service (React/Nginx)
+  - type: web
+    name: student-companion-frontend
+    plan: free
+    runtime: docker
+    dockerfilePath: packages/frontend/Dockerfile
+    dockerContext: .
+    staticPublishPath: packages/frontend/dist
+    healthCheckPath: /
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: student-companion-backend
+          type: web
+          property: url
+    autoDeploy: true
