@@ -53,7 +53,7 @@ app.use(notFoundHandler);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-const PORT = parseInt(env.BACKEND_PORT, 10) || 5000;
+const PORT = parseInt(process.env.PORT ?? env.BACKEND_PORT ?? '5000', 10);
 
 app.listen(PORT, () => {
   console.log(`✓ Server is running on http://localhost:${PORT}`);
