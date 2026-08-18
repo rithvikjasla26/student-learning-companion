@@ -13,7 +13,7 @@ router.use(authMiddleware, requireStudent);
 
 router.post('/start', checkinController.startCheckIn);
 router.post('/evaluate', validateBody(checkinSchemas.evaluateExplanation), checkinController.evaluateExplanation);
-router.post('/reconfirm', validateBody(reconfirmSchemas.evaluateReconfirmation), reconfirmController.evaluateReconfirmation);
+router.post('/reconfirm', validateBody(reconfirmSchemas.evaluateReconfirmation), reconfirmController.submitReconfirmation);
 router.post('/upload-audio', audioUpload.single('audio'), checkinController.uploadAudio);
 router.get('/history', validateQuery(checkinSchemas.getHistory), checkinController.getHistory);
 

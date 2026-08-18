@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { Secret } from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import env from '../config/env.js';
 
@@ -95,11 +95,11 @@ export const authService = {
     }
 
     // Generate tokens
-    const accessToken = jwt.sign({ userId: user.id, email, role }, env.JWT_SECRET, {
+    const accessToken = jwt.sign({ userId: user.id, email, role }, env.JWT_SECRET as unknown as Secret, {
       expiresIn: env.JWT_EXPIRES_IN,
     });
 
-    const refreshToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
+    const refreshToken = jwt.sign({ userId: user.id }, env.JWT_SECRET as unknown as Secret, {
       expiresIn: '30d',
     });
 
@@ -115,7 +115,7 @@ export const authService = {
    */
   async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
     try {
-      const decoded = jwt.verify(refreshToken, env.JWT_SECRET) as { userId: string };
+      const decoded = jwt.verify(refreshToken, env.JWT_SECRET as unknown as Secret) as { userId: string };
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -127,10 +127,8 @@ export const authService = {
 
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
-        env.JWT_SECRET,
-        {
-          expiresIn: env.JWT_EXPIRES_IN,
-        }
+        env.JWT_SECRET as unknown as Secret,
+        { expiresIn: env.JWT_EXPIRES_IN }
       );
 
       return { accessToken };

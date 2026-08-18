@@ -24,7 +24,7 @@ export const parentService = {
       include: { student: true },
     });
 
-    return parentStudent.map((ps) => ({
+    return parentStudent.map((ps: any) => ({
       id: ps.student.id,
       name: ps.student.name,
       gradeLevel: ps.student.gradeLevel,
@@ -94,8 +94,8 @@ export const parentService = {
 
     // Find weak topics (< 60% mastery)
     const weakTopics = topicProgress
-      .filter((tp) => tp.masteryScore < 60)
-      .map((tp) => ({
+      .filter((tp: any) => tp.masteryScore < 60)
+      .map((tp: any) => ({
         subject: tp.topic.subject,
         chapter: tp.topic.chapter,
         subtopic: tp.topic.subtopic,
@@ -112,7 +112,7 @@ export const parentService = {
         streakCount: stats.streakCount,
         lastCheckInDate: stats.lastCheckInDate,
       },
-      topicsProgress: topicProgress.map((tp) => ({
+      topicsProgress: topicProgress.map((tp: any) => ({
         subject: tp.topic.subject,
         chapter: tp.topic.chapter,
         masteryScore: tp.masteryScore,
@@ -299,7 +299,7 @@ export const parentService = {
     // Group by topic
     const topicMap: Record<string, { topic: { subject: string; chapter: string }; checkIns: number; scores: number[] }> = {};
 
-    recentCheckIns.forEach((ci) => {
+    recentCheckIns.forEach((ci: any) => {
       if (!ci.topic) return;
 
       const key = `${ci.topic.id}`;
@@ -325,7 +325,7 @@ export const parentService = {
     }));
 
     const totalCheckIns = recentCheckIns.length;
-    const totalXpThisWeek = recentCheckIns.reduce((sum, ci) => sum + ci.xpEarned, 0);
+    const totalXpThisWeek = recentCheckIns.reduce((sum: number, ci: any) => sum + ci.xpEarned, 0);
     const averageXpPerDay = totalCheckIns > 0 ? Math.round(totalXpThisWeek / 7) : 0;
 
     return {
