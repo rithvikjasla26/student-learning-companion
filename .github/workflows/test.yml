@@ -103,10 +103,10 @@ jobs:
           SCHEDULER_TIMEZONE=Asia/Kolkata
           EOF
 
-      - name: Run Prisma migrations
+      - name: Apply Prisma schema (use db push to avoid migrations table requirement)
         run: |
           cd packages/backend
-          npx prisma migrate deploy --skip-generate
+          npx prisma db push --accept-data-loss
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/student_companion_test
 
