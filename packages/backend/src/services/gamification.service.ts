@@ -123,7 +123,7 @@ export const gamificationService = {
       select: { badgeId: true },
     });
 
-    const earnedBadgeIds = new Set(earnedBadges.map((b) => b.badgeId));
+    const earnedBadgeIds = new Set(earnedBadges.map((b: { badgeId: string }) => b.badgeId));
 
     // Get all available badges
     const allBadges = await prisma.badge.findMany();

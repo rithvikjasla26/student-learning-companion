@@ -60,7 +60,7 @@ export const schedulerService = {
     }
 
     // Calculate priorities and pick the highest
-    const topicsWithPriority = topics.map((t) => ({
+    const topicsWithPriority = topics.map((t: any) => ({
       ...t,
       priority: calculatePriority(
         t.nextDueAt,
@@ -70,7 +70,7 @@ export const schedulerService = {
       ),
     }));
 
-    topicsWithPriority.sort((a, b) => a.priority - b.priority);
+    topicsWithPriority.sort((a: any, b: any) => a.priority - b.priority);
     const topTopic = topicsWithPriority[0];
 
     return {
@@ -111,7 +111,7 @@ export const schedulerService = {
     const now = new Date();
 
     const topicsWithPriority = topics
-      .map((t) => {
+      .map((t: any) => {
         const daysSinceDue = (now.getTime() - t.nextDueAt.getTime()) / (1000 * 60 * 60 * 24);
         return {
           topicId: t.topicId,
@@ -128,7 +128,7 @@ export const schedulerService = {
           daysSinceDue,
         };
       })
-      .sort((a, b) => a.priority - b.priority)
+      .sort((a: any, b: any) => a.priority - b.priority)
       .slice(0, limit);
 
     return topicsWithPriority;

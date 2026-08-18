@@ -94,6 +94,7 @@ export const checkinService = {
     gap_description: string;
     follow_up_question?: string;
     xpEarned: number;
+    newBadges: Array<{ id: string; name: string }>;
   }> {
     // Get topic details
     const topic = await prisma.topic.findUnique({

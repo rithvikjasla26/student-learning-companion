@@ -32,7 +32,7 @@ export const progressService = {
       level: stats.level,
       streakCount: stats.streakCount,
       lastCheckInDate: stats.lastCheckInDate,
-      badges: badges.map((sb) => ({
+      badges: badges.map((sb: any) => ({
         id: sb.badge.id,
         name: sb.badge.name,
         description: sb.badge.description,
@@ -63,7 +63,7 @@ export const progressService = {
       orderBy: { masteryScore: 'asc' },
     });
 
-    return progress.map((p) => ({
+    return progress.map((p: any) => ({
       topicId: p.topicId,
       subject: p.topic.subject,
       chapter: p.topic.chapter,
@@ -107,7 +107,7 @@ export const progressService = {
     ]);
 
     return {
-      checkIns: checkIns.map((c) => ({
+      checkIns: checkIns.map((c: any) => ({
         id: c.id,
         date: c.date,
         topicId: c.topicId,
@@ -143,7 +143,7 @@ export const progressService = {
 
     // Group by date
     const dailyXp: Record<string, number> = {};
-    checkIns.forEach((c) => {
+    checkIns.forEach((c: any) => {
       const dateStr = c.date.toISOString().split('T')[0];
       dailyXp[dateStr] = (dailyXp[dateStr] || 0) + c.xpEarned;
     });

@@ -1,6 +1,8 @@
-import { PrismaClient, WidgetType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+type WidgetType = string;
 
 export const widgetService = {
   /**
@@ -62,7 +64,7 @@ export const widgetService = {
     }
 
     // Evaluate answer (simplified for MVP)
-    const isCorrect = evaluateAnswer(widget.type, studentAnswer, widget.contentJson);
+    const isCorrect = evaluateAnswer(widget.type as WidgetType, studentAnswer, widget.contentJson);
     const score = isCorrect ? 100 : 50;
 
     // Save response
@@ -98,7 +100,7 @@ export const widgetService = {
       where: { studentId },
     });
 
-    const correct = responses.filter((r) => r.isCorrect).length;
+    const correct = responses.filter((r: any) => r.isCorrect).length;
     const total = responses.length;
 
     return {
