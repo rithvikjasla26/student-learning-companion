@@ -77,7 +77,6 @@ export const ProgressPage: React.FC = () => {
     subjectMastery[subject] = avgMastery;
   });
 
-  const xpForNextLevel = (stats.level) * 100; // 100 XP per level
   const xpProgress = (stats.totalXp % 100) || 0;
   const xpToNextLevel = 100 - xpProgress;
 

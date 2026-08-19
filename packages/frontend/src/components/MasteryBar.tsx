@@ -6,7 +6,7 @@ interface MasteryBarProps {
   showLabel?: boolean;
 }
 
-export const MasteryBar: React.FC<MasteryBarProps> = ({ subject, masteryScore, showLabel = true }) => {
+export const MasteryBar: React.FC<MasteryBarProps> = ({ subject, masteryScore, showLabel: _showLabel = true }) => {
   // Color based on mastery score
   let barColor = 'bg-gray-300'; // 0-39%: gray
   let textColor = 'text-gray-600';

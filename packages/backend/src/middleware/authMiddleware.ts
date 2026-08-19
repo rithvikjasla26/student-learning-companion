@@ -47,7 +47,7 @@ export const requireRole =
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.role as 'STUDENT' | 'PARENT' | 'ADMIN')) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions' });
     }
 

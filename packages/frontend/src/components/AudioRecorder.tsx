@@ -8,7 +8,7 @@ interface AudioRecorderProps {
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onAudioRecorded,
-  onTranscription,
+  onTranscription: _onTranscription,
   isUploading = false,
 }) => {
   const mediaRecorder = useRef<MediaRecorder | null>(null);

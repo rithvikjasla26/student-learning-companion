@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 
 interface Label {
   id: string;
@@ -31,7 +31,6 @@ export const DragDropLabel: React.FC<DragDropLabelProps> = ({
   const [placedLabels, setPlacedLabels] = useState<Record<string, string>>({});
   const [draggingLabel, setDraggingLabel] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
-  const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = (e: React.DragEvent, labelId: string) => {
     setDraggingLabel(labelId);

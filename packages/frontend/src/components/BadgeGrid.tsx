@@ -13,7 +13,7 @@ interface BadgeGridProps {
   allBadgesCount?: number;
 }
 
-export const BadgeGrid: React.FC<BadgeGridProps> = ({ badges, allBadgesCount = 10 }) => {
+export const BadgeGrid: React.FC<BadgeGridProps> = ({ badges, allBadgesCount: _allBadgesCount = 10 }) => {
   // Default badge icons by name pattern
   const getBadgeEmoji = (name: string): string => {
     if (name.includes('First') || name.includes('Check')) return '🎯';

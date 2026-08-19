@@ -95,13 +95,17 @@ export const authService = {
     }
 
     // Generate tokens
-    const accessToken = jwt.sign({ userId: user.id, email, role }, env.JWT_SECRET as unknown as Secret, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    });
+    const accessToken = jwt.sign(
+      { userId: user.id, email, role },
+      env.JWT_SECRET as Secret,
+      { expiresIn: env.JWT_EXPIRES_IN } as any
+    );
 
-    const refreshToken = jwt.sign({ userId: user.id }, env.JWT_SECRET as unknown as Secret, {
-      expiresIn: '30d',
-    });
+    const refreshToken = jwt.sign(
+      { userId: user.id },
+      env.JWT_SECRET as Secret,
+      { expiresIn: '30d' } as any
+    );
 
     return {
       accessToken,
@@ -115,7 +119,7 @@ export const authService = {
    */
   async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
     try {
-      const decoded = jwt.verify(refreshToken, env.JWT_SECRET as unknown as Secret) as { userId: string };
+      const decoded = jwt.verify(refreshToken, env.JWT_SECRET as Secret) as { userId: string };
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -127,8 +131,8 @@ export const authService = {
 
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
-        env.JWT_SECRET as unknown as Secret,
-        { expiresIn: env.JWT_EXPIRES_IN }
+        env.JWT_SECRET as Secret,
+        { expiresIn: env.JWT_EXPIRES_IN } as any
       );
 
       return { accessToken };
