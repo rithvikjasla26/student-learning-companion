@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
+// Determine API URL with environment variable priority
+// For production: Set VITE_API_BASE_URL in your deployment environment
+// Example for Render: VITE_API_BASE_URL=https://student-learning-companion-backend.onrender.com/api
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 export const apiClient = axios.create({

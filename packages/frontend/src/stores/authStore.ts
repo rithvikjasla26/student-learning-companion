@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
+// Determine API URL from environment variable for production deployment
+// For production: Set VITE_API_BASE_URL in your deployment environment
+// Example for Render: VITE_API_BASE_URL=https://student-learning-companion-backend.onrender.com/api
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 interface User {
