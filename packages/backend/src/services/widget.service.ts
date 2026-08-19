@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, WidgetType } from '@prisma/client';
 
 const prisma = new PrismaClient();
-
-type WidgetType = string;
 
 export const widgetService = {
   /**
