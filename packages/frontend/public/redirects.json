@@ -1,0 +1,7 @@
+[
+  {
+    "source": "/:path((?!.*\\.).*)*",
+    "destination": "/index.html",
+    "permanent": false
+  }
+]
