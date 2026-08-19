@@ -17,15 +17,18 @@ services:
         value: "https://student-learning-companion-frontend.onrender.com"
     healthCheckPath: /health
 
-  - type: static_site
+  - type: web_service
     name: student-learning-companion-frontend
+    env: node
     repo: https://github.com/rithvikjasla26/student-learning-companion
     branch: main
     root: packages/frontend
     plan: free
     buildCommand: "npm install && npm run build"
-    publishPath: packages/frontend/dist
+    startCommand: "npm start"
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: VITE_API_BASE
         value: "https://student-learning-companion-backend.onrender.com/api"
 
