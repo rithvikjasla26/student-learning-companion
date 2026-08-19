@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response } from 'express';
 
 /**
@@ -42,8 +42,8 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
     // Use email from request body as key for OTP endpoints
-    const email = (req.body?.email as string) || req.ip || '';
-    return email || req.ip || 'unknown';
+    const email = (req.body?.email as string) || ipKeyGenerator(req.ip ?? 'unknown');
+    return email || 'unknown';
   },
   handler: (req: Request, res: Response) => {
     const retryAfter = req.rateLimit?.resetTime
@@ -75,7 +75,7 @@ export const studentApiLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
     // Use student ID if authenticated, otherwise use IP
-    const userId = (req as any).user?.userId || req.ip || 'unknown';
+    const userId = (req as any).user?.userId || ipKeyGenerator(req.ip ?? 'unknown');
     return userId;
   },
   handler: (req: Request, res: Response) => {
@@ -100,7 +100,7 @@ export const checkinLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
     // Use student ID for per-student limiting
-    const userId = (req as any).user?.userId || req.ip || 'unknown';
+    const userId = (req as any).user?.userId || ipKeyGenerator(req.ip ?? 'unknown');
     return `checkin-${userId}`;
   },
   skip: (req: Request) => {
@@ -128,7 +128,7 @@ export const llmLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    const userId = (req as any).user?.userId || req.ip || 'unknown';
+    const userId = (req as any).user?.userId || ipKeyGenerator(req.ip ?? 'unknown');
     return `llm-${userId}`;
   },
   handler: (req: Request, res: Response) => {
@@ -152,7 +152,7 @@ export const parentLinkLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    const userId = (req as any).user?.userId || req.ip || 'unknown';
+    const userId = (req as any).user?.userId || ipKeyGenerator(req.ip ?? 'unknown');
     return `link-${userId}`;
   },
   handler: (req: Request, res: Response) => {
