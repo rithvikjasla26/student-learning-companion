@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { checkinService, Topic, EvaluationResult } from '../services/checkin.service';
 import { EvaluationFeedback } from '../components/EvaluationFeedback';
 import { AudioRecorder } from '../components/AudioRecorder';
+import { Header } from '../components/Header';
 import { WidgetPage } from './WidgetPage';
 import { ReconfirmPage } from './ReconfirmPage';
 
@@ -145,8 +146,10 @@ export const CheckInPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
-      <div className="max-w-2xl mx-auto">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+        <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Daily Check-in</h1>
@@ -382,6 +385,6 @@ export const CheckInPage: React.FC = () => {
           <p>💡 Tip: Be as detailed as possible in your explanation for better feedback</p>
         </div>
       </div>
-    </div>
+    </>
   );
 };
