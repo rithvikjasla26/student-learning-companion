@@ -158,6 +158,20 @@ export const CheckInPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-xl p-8">
+          {step === 'input' && !topic && (
+            <div className="text-center space-y-4">
+              <div className="text-red-600 text-lg mb-4">⚠️</div>
+              <h2 className="text-xl font-bold text-gray-900">Unable to Load Today's Topic</h2>
+              <p className="text-gray-600">{error || 'Please try again'}</p>
+              <button
+                onClick={loadTopic}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
           {step === 'input' && topic && (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Topic Info */}
