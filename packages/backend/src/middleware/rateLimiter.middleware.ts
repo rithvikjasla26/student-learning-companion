@@ -94,7 +94,7 @@ export const studentApiLimiter = rateLimit({
  */
 export const checkinLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 attempts per hour (enough for retries)
+  max: 10, // 10 attempts per hour (enough for retries)
   message: 'Too many check-in attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -110,7 +110,7 @@ export const checkinLimiter = rateLimit({
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       success: false,
-      message: 'Too many check-in attempts. You can submit a check-in up to 5 times per hour.',
+      message: 'Too many check-in attempts. You can submit a check-in up to 10 times per hour.',
       retryAfter: req.rateLimit?.resetTime,
     });
   },
