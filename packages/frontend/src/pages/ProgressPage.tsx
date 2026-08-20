@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { progressService, StudentStats, TopicProgress, TrendData } from '../services/progress.service';
 import { MasteryBar } from '../components/MasteryBar';
 import { BadgeGrid } from '../components/BadgeGrid';
+import { Header } from '../components/Header';
 
 export const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
@@ -83,8 +84,10 @@ export const ProgressPage: React.FC = () => {
   const xpToNextLevel = 100 - xpProgress;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+        <div className="max-w-6xl mx-auto">
         {/* Header: Stats Overview */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
@@ -238,6 +241,6 @@ export const ProgressPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
