@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { parentService } from '../services/parent.service';
+import { Header } from '../components/Header';
 
 export const LinkChildPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,9 +29,9 @@ export const LinkChildPage: React.FC = () => {
         setSuccess(true);
         setCode('');
         setStudentId('');
-        // Redirect back to home/parent dashboard after 2 seconds
+        // Redirect to parent dashboard after 2 seconds
         setTimeout(() => {
-          navigate('/');
+          navigate('/parent');
         }, 2000);
       } else {
         setError(result.message);
@@ -43,8 +44,10 @@ export const LinkChildPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
-      <div className="max-w-2xl mx-auto">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+        <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Link a Child</h1>
@@ -147,6 +150,6 @@ export const LinkChildPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
