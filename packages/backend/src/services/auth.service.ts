@@ -19,13 +19,14 @@ export const authService = {
    * For MVP, OTP is hardcoded as "123456" and logged to console
    */
   async sendOTP(email: string): Promise<{ success: boolean; message: string }> {
+    const normalizedEmail = email.toLowerCase().trim();
     const otp = '123456'; // Hardcoded for MVP
     const expiresAt = Date.now() + parseInt(env.OTP_EXPIRY_MINUTES) * 60 * 1000;
 
-    otpStore[email] = { code: otp, expiresAt };
+    otpStore[normalizedEmail] = { code: otp, expiresAt };
 
     // In production, use SendGrid or similar
-    console.log(`\n📧 OTP for ${email}: ${otp} (expires in ${env.OTP_EXPIRY_MINUTES} minutes)\n`);
+    console.log(`\n📧 OTP for ${normalizedEmail}: ${otp} (expires in ${env.OTP_EXPIRY_MINUTES} minutes)\n`);
 
     return {
       success: true,
@@ -41,8 +42,10 @@ export const authService = {
     otp: string,
     role: 'STUDENT' | 'PARENT' = 'STUDENT'
   ): Promise<{ accessToken: string; refreshToken: string; userId: string }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Check if OTP exists and is valid
-    const storedOTP = otpStore[email];
+    const storedOTP = otpStore[normalizedEmail];
     if (!storedOTP) {
       throw new Error('OTP not found. Please request a new OTP.');
     }
@@ -52,19 +55,19 @@ export const authService = {
     }
 
     if (storedOTP.expiresAt < Date.now()) {
-      delete otpStore[email];
+      delete otpStore[normalizedEmail];
       throw new Error('OTP expired. Please request a new OTP.');
     }
 
     // Delete used OTP
-    delete otpStore[email];
+    delete otpStore[normalizedEmail];
 
     // Find or create user
-    let user = await prisma.user.findUnique({ where: { email } });
+    let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
     if (!user) {
       user = await prisma.user.create({
-        data: { email, role },
+        data: { email: normalizedEmail, role },
       });
 
       // Create student or parent profile
@@ -96,7 +99,7 @@ export const authService = {
 
     // Generate tokens
     const accessToken = jwt.sign(
-      { userId: user.id, email, role },
+      { userId: user.id, email: user.email, role },
       env.JWT_SECRET as Secret,
       { expiresIn: env.JWT_EXPIRES_IN } as any
     );
