@@ -82,6 +82,7 @@ export const ParentDashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       </>
     );
   }
@@ -113,6 +114,7 @@ export const ParentDashboardPage: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
       </>
     );
   }
