@@ -54,7 +54,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Routes with specific rate limiters
-app.use('/auth', authLimiter, authRoutes); // Stricter auth rate limiting
+app.use('/api/auth', authLimiter, authRoutes); // Stricter auth rate limiting
 app.use('/api/checkin', checkinLimiter, checkinRoutes); // Per-student check-in limiting
 app.use('/api/widget', studentApiLimiter, widgetRoutes); // Standard API limiting
 app.use('/api/progress', studentApiLimiter, progressRoutes); // Standard API limiting
