@@ -19,7 +19,14 @@ export const progressService = {
     });
 
     if (!stats) {
-      throw new Error('Student stats not found');
+      // Return default stats if student hasn't been initialized yet
+      return {
+        totalXp: 0,
+        level: 1,
+        streakCount: 0,
+        lastCheckInDate: null,
+        badges: [],
+      };
     }
 
     const badges = await prisma.studentBadge.findMany({
