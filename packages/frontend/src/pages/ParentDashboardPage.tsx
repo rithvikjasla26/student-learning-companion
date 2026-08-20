@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { parentService, Child, ChildProgress, WeeklySummary } from '../services/parent.service';
 import { MasteryBar } from '../components/MasteryBar';
+import { Header } from '../components/Header';
 
 export const ParentDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,8 +63,10 @@ export const ParentDashboardPage: React.FC = () => {
 
   if (children.length === 0 && !isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <>
+        <Header />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+          <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Your Children</h1>
             <div className="bg-white rounded-lg shadow-lg p-12">
@@ -79,7 +82,7 @@ export const ParentDashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -96,8 +99,10 @@ export const ParentDashboardPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <>
+        <Header />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+          <div className="max-w-4xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <p className="text-red-600 font-semibold">{error}</p>
             <button
@@ -108,7 +113,7 @@ export const ParentDashboardPage: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -131,8 +136,10 @@ export const ParentDashboardPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+        <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
@@ -310,6 +317,6 @@ export const ParentDashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
