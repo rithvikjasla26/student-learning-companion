@@ -149,6 +149,7 @@ export const LinkChildPage: React.FC = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </>
   );
