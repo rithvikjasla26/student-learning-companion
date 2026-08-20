@@ -4,13 +4,21 @@ import { CheckInPage } from './pages/CheckInPage';
 import { ProgressPage } from './pages/ProgressPage';
 import { ParentDashboardPage } from './pages/ParentDashboardPage';
 import { LinkChildPage } from './pages/LinkChildPage';
+import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useAuth } from './hooks/useAuth';
 
-// Placeholder pages (to be built in later phases)
-const DashboardPage = () => (
-  <Navigate to="/progress" replace />
-);
+// Dashboard page - routes based on user role
+const DashboardPage = () => {
+  const { user } = useAuth();
+
+  if (user?.role === 'PARENT') {
+    return <Navigate to="/parent" replace />;
+  }
+
+  return <Navigate to="/progress" replace />;
+};
 
 const HomePage = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -64,6 +72,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route
           path="/dashboard"
           element={
