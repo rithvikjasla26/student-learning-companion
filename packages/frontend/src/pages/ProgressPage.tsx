@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { progressService, StudentStats, TopicProgress, TrendData } from '../services/progress.service';
 import { MasteryBar } from '../components/MasteryBar';
 import { BadgeGrid } from '../components/BadgeGrid';
 
 export const ProgressPage: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<StudentStats | null>(null);
   const [topicProgress, setTopicProgress] = useState<TopicProgress[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
@@ -85,7 +87,15 @@ export const ProgressPage: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header: Stats Overview */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">Your Progress</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-4xl font-bold text-gray-900">Your Progress</h1>
+            <button
+              onClick={() => navigate('/checkin')}
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105"
+            >
+              📝 Daily Check-in
+            </button>
+          </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
