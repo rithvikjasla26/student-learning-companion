@@ -99,8 +99,14 @@ export const checkinLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    // Use student ID for per-student limiting
-    const userId = (req as any).user?.userId || ipKeyGenerator(req.ip ?? 'unknown');
+    // Use student ID for per-student limiting only
+    // No IP fallback - authenticated endpoint must have userId
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      // Request doesn't have valid auth, will fail with 401 in authMiddleware anyway
+      // Use a placeholder that indicates auth failure (all unauthenticated get same key)
+      return 'checkin-unauthenticated';
+    }
     return `checkin-${userId}`;
   },
   skip: (req: Request) => {
