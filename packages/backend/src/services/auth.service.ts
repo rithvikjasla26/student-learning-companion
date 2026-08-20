@@ -26,7 +26,9 @@ export const authService = {
     otpStore[normalizedEmail] = { code: otp, expiresAt };
 
     // In production, use SendGrid or similar
-    console.log(`\n📧 OTP for ${normalizedEmail}: ${otp} (expires in ${env.OTP_EXPIRY_MINUTES} minutes)\n`);
+    console.log(`\n📧 OTP SENT for ${normalizedEmail}: ${otp}`);
+    console.log(`⏰ Expires in ${env.OTP_EXPIRY_MINUTES} minutes`);
+    console.log(`📊 OTP Store now contains: ${Object.keys(otpStore).join(', ')}\n`);
 
     return {
       success: true,
@@ -44,11 +46,18 @@ export const authService = {
   ): Promise<{ accessToken: string; refreshToken: string; userId: string }> {
     const normalizedEmail = email.toLowerCase().trim();
 
+    // Debug logging
+    console.log(`\n🔍 Verifying OTP for: ${normalizedEmail}`);
+    console.log(`📊 OTP Store keys: ${Object.keys(otpStore).join(', ') || 'EMPTY'}`);
+
     // Check if OTP exists and is valid
     const storedOTP = otpStore[normalizedEmail];
     if (!storedOTP) {
+      console.error(`❌ OTP not found for: ${normalizedEmail}`);
       throw new Error('OTP not found. Please request a new OTP.');
     }
+
+    console.log(`✓ OTP found, verifying...\n`);
 
     if (storedOTP.code !== otp) {
       throw new Error('Invalid OTP');
