@@ -385,6 +385,7 @@ export const CheckInPage: React.FC = () => {
           <p>💡 Tip: Be as detailed as possible in your explanation for better feedback</p>
         </div>
       </div>
+      </div>
     </>
   );
 };

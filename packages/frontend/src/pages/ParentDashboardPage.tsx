@@ -319,6 +319,7 @@ export const ParentDashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+      </div>
     </>
   );
 };
