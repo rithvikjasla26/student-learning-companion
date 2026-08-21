@@ -46,6 +46,7 @@ model Student {
   badges                 StudentBadge[]
   stats                  StudentStats?
   linkedParentStudents   ParentStudent[]
+  taughtLogs             TaughtLog[]
 
   @@map("students")
 }
@@ -106,6 +107,7 @@ model Topic {
   studentProgress  StudentTopicProgress[]
   widgets          Widget[]
   checkInSessions  CheckInSession[]
+  taughtLogs       TaughtLog[]
 
   @@unique([subject, chapter, subtopic])
   @@map("topics")
@@ -237,4 +239,23 @@ model StudentStats {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("student_stats")
+}
+
+model TaughtLog {
+  id               String   @id @default(cuid())
+  studentId        String
+  subject          String   // e.g., "Science", "Math"
+  chapter          String   // e.g., "Photosynthesis", "Algebra"
+  topicId          String
+  source           String   @default("SCHOOL") // SCHOOL | COACHING | SELF_STUDY
+  coverageType     String   @default("INTRODUCED") // INTRODUCED | PRACTICE | REVISION
+  homeworkAssigned Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([createdAt])
+  @@map("taught_logs")
 }

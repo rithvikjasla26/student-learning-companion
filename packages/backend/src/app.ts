@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import env from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
 import checkinRoutes from './routes/checkin.routes.js';
+import taughtlogRoutes from './routes/taughtlog.routes.js';
 import widgetRoutes from './routes/widget.routes.js';
 import progressRoutes from './routes/progress.routes.js';
 import parentRoutes from './routes/parent.routes.js';
@@ -56,6 +57,7 @@ app.get('/health', (req: Request, res: Response) => {
 // Routes with specific rate limiters
 app.use('/api/auth', authLimiter, authRoutes); // Stricter auth rate limiting
 app.use('/api/checkin', checkinLimiter, checkinRoutes); // Per-student check-in limiting
+app.use('/api/taught-log', studentApiLimiter, taughtlogRoutes); // Standard API limiting
 app.use('/api/widget', studentApiLimiter, widgetRoutes); // Standard API limiting
 app.use('/api/progress', studentApiLimiter, progressRoutes); // Standard API limiting
 app.use('/api/parent', parentLinkLimiter, parentRoutes); // Parent linking limiting

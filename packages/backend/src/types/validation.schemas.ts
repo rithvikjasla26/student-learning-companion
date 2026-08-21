@@ -252,6 +252,71 @@ export const progressSchemas = {
   }),
 };
 
+// ============ TAUGHTLOG SCHEMAS ============
+
+export const taughtlogSchemas = {
+  create: Joi.object({
+    subject: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Subject is required',
+      }),
+    chapter: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Chapter is required',
+      }),
+    topicId: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Topic ID is required',
+      }),
+    source: Joi.string()
+      .valid('SCHOOL', 'COACHING', 'SELF_STUDY')
+      .optional()
+      .default('SCHOOL')
+      .messages({
+        'any.only': 'Source must be one of: SCHOOL, COACHING, SELF_STUDY',
+      }),
+    coverageType: Joi.string()
+      .valid('INTRODUCED', 'PRACTICE', 'REVISION')
+      .optional()
+      .default('INTRODUCED')
+      .messages({
+        'any.only': 'Coverage type must be one of: INTRODUCED, PRACTICE, REVISION',
+      }),
+    homeworkAssigned: Joi.boolean()
+      .optional()
+      .default(false)
+      .messages({
+        'boolean.base': 'Homework assigned must be a boolean',
+      }),
+  }),
+
+  getHistory: Joi.object({
+    limit: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .optional()
+      .default(20)
+      .messages({
+        'number.base': 'Limit must be a number',
+        'number.min': 'Limit must be at least 1',
+        'number.max': 'Limit cannot exceed 100',
+      }),
+    offset: Joi.number()
+      .integer()
+      .min(0)
+      .optional()
+      .default(0)
+      .messages({
+        'number.base': 'Offset must be a number',
+        'number.min': 'Offset cannot be negative',
+      }),
+  }),
+};
+
 // ============ PAGINATION HELPERS ============
 
 export const paginationSchema = Joi.object({
