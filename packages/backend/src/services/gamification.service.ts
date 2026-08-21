@@ -78,20 +78,23 @@ export const gamificationService = {
     const newGlobalLevel = this.getLevel(newTotalXp);
 
     // Update subject-specific XP & level
-    const subjectLevels = (stats.subjectLevels as Record<string, number>) || {};
-    const currentSubjectXp = subjectLevels[subject] || 0;
+    // Store both XP and level for each subject for proper progression tracking
+    const subjectData = (stats.subjectLevels as Record<string, any>) || {};
+    const currentSubjectRecord = typeof subjectData[subject] === 'object' ? subjectData[subject] : { xp: 0, level: 1 };
+    const currentSubjectXp = currentSubjectRecord.xp || 0;
     const newSubjectXp = currentSubjectXp + amount;
-    const previousSubjectLevel = this.getLevel(currentSubjectXp);
+    const previousSubjectLevel = currentSubjectRecord.level || this.getLevel(currentSubjectXp);
     const newSubjectLevel = this.getLevel(newSubjectXp);
 
-    subjectLevels[subject] = newSubjectXp;
+    // Store subject level and XP together for tracking
+    subjectData[subject] = { xp: newSubjectXp, level: newSubjectLevel };
 
     const updated = await prisma.studentStats.update({
       where: { studentId },
       data: {
         totalXp: newTotalXp,
         level: newGlobalLevel,
-        subjectLevels,
+        subjectLevels: subjectData,
       },
     });
 

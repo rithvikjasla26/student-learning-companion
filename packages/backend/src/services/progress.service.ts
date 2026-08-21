@@ -36,10 +36,22 @@ export const progressService = {
       include: { badge: true },
     });
 
+    // Extract subject levels from stored data (handle both old format and new format)
+    const subjectLevelMap: Record<string, number> = {};
+    const subjectData = (stats.subjectLevels as Record<string, any>) || {};
+    for (const [subject, data] of Object.entries(subjectData)) {
+      if (typeof data === 'object' && data.level) {
+        subjectLevelMap[subject] = data.level;
+      } else if (typeof data === 'number') {
+        // Backwards compatibility: old format stored just numbers
+        subjectLevelMap[subject] = data;
+      }
+    }
+
     return {
       totalXp: stats.totalXp,
       level: stats.level,
-      subjectLevels: (stats.subjectLevels as Record<string, number>) || {},
+      subjectLevels: subjectLevelMap,
       streakCount: stats.streakCount,
       lastCheckInDate: stats.lastCheckInDate,
       badges: badges.map((sb: any) => ({
