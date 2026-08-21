@@ -4,8 +4,11 @@ import { checkinService, Topic, EvaluationResult } from '../services/checkin.ser
 import { EvaluationFeedback } from '../components/EvaluationFeedback';
 import { AudioRecorder } from '../components/AudioRecorder';
 import { Header } from '../components/Header';
+import { RateLimitAlert } from '../components/RateLimitAlert';
 import { WidgetPage } from './WidgetPage';
 import { ReconfirmPage } from './ReconfirmPage';
+import { useRateLimitStore } from '../stores/rateLimitStore';
+import { normalizeError } from '../utils/errorHandler';
 
 type CheckInStep = 'loading' | 'input' | 'feedback' | 'widget' | 'reconfirm' | 'results';
 
@@ -22,6 +25,14 @@ export const CheckInPage: React.FC = () => {
   const [audioDuration, setAudioDuration] = useState(0);
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [useVoiceInput, setUseVoiceInput] = useState(false);
+
+  // Rate limit state
+  const [rateLimitInfo, setRateLimitInfo] = useState<{
+    retryAfter: number;
+    limiterType?: string;
+    message?: string;
+  } | null>(null);
+  const rateLimitStore = useRateLimitStore();
 
   // Multi-step flow state
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -40,11 +51,22 @@ export const CheckInPage: React.FC = () => {
     try {
       setStep('loading');
       setError(null);
+      setRateLimitInfo(null);
       const result = await checkinService.startCheckIn();
       setTopic(result);
       setStep('input');
     } catch (err: any) {
-      setError(err.message || 'Failed to load topic');
+      const normalized = normalizeError(err);
+      if (normalized.isRateLimited && normalized.retryAfter) {
+        setRateLimitInfo({
+          retryAfter: normalized.retryAfter,
+          limiterType: normalized.limiterType,
+          message: normalized.message,
+        });
+        setError(normalized.message);
+      } else {
+        setError(normalized.message || 'Failed to load topic');
+      }
       setStep('input');
     }
   };
@@ -60,6 +82,7 @@ export const CheckInPage: React.FC = () => {
 
     setIsEvaluating(true);
     setError(null);
+    setRateLimitInfo(null);
 
     try {
       const result = await checkinService.evaluateExplanation(topic.topicId, explanation);
@@ -71,7 +94,15 @@ export const CheckInPage: React.FC = () => {
       setSessionId(result.sessionId || `session_${Date.now()}`);
       setStep('feedback');
     } catch (err: any) {
-      setError(err.message || 'Failed to evaluate explanation');
+      const normalized = normalizeError(err);
+      if (normalized.isRateLimited && normalized.retryAfter) {
+        setRateLimitInfo({
+          retryAfter: normalized.retryAfter,
+          limiterType: normalized.limiterType,
+          message: normalized.message,
+        });
+      }
+      setError(normalized.message || 'Failed to evaluate explanation');
     } finally {
       setIsEvaluating(false);
     }
@@ -121,6 +152,7 @@ export const CheckInPage: React.FC = () => {
 
     setIsUploadingAudio(true);
     setError(null);
+    setRateLimitInfo(null);
 
     try {
       const result = await checkinService.uploadAudio(audioBlob, audioDuration);
@@ -128,7 +160,15 @@ export const CheckInPage: React.FC = () => {
         setExplanation(result.transcription.text);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to upload audio');
+      const normalized = normalizeError(err);
+      if (normalized.isRateLimited && normalized.retryAfter) {
+        setRateLimitInfo({
+          retryAfter: normalized.retryAfter,
+          limiterType: normalized.limiterType,
+          message: normalized.message,
+        });
+      }
+      setError(normalized.message || 'Failed to upload audio');
     } finally {
       setIsUploadingAudio(false);
     }
@@ -280,8 +320,17 @@ export const CheckInPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Rate Limit Alert */}
+              {rateLimitInfo && (
+                <RateLimitAlert
+                  retryAfter={rateLimitInfo.retryAfter}
+                  limiterType={rateLimitInfo.limiterType}
+                  message={rateLimitInfo.message}
+                />
+              )}
+
               {/* Error Message */}
-              {error && (
+              {error && !rateLimitInfo && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
@@ -290,7 +339,7 @@ export const CheckInPage: React.FC = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isEvaluating}
+                disabled={isEvaluating || !!rateLimitInfo}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition"
               >
                 {isEvaluating ? (
@@ -298,6 +347,8 @@ export const CheckInPage: React.FC = () => {
                     <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
                     Evaluating...
                   </span>
+                ) : rateLimitInfo ? (
+                  'Rate Limited - Please Wait'
                 ) : (
                   'Evaluate My Understanding'
                 )}

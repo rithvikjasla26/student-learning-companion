@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
+import { useRateLimitStore } from '../stores/rateLimitStore';
+import { getRateLimitInfo, getEndpointFromError } from '../utils/errorHandler';
 
 // Determine API URL with environment variable priority
 // For production: Set VITE_API_BASE_URL in your deployment environment
@@ -22,14 +24,34 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor to handle 401 and refresh token
+// Response interceptor to handle 401, 429, and other errors
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const endpoint = getEndpointFromError(error);
+    const status = error.response?.status;
+
+    // Handle 429 Rate Limit errors
+    if (status === 429) {
+      const rateLimitInfo = getRateLimitInfo(error);
+      if (rateLimitInfo) {
+        const store = useRateLimitStore.getState();
+        store.setRateLimit(
+          endpoint,
+          rateLimitInfo.retryAfter,
+          rateLimitInfo.limiterType,
+          error.response?.data?.message
+        );
+        console.warn(
+          `[API] Rate limit hit on ${endpoint}. Limiter: ${rateLimitInfo.limiterType || 'unknown'}. Retry after: ${new Date(rateLimitInfo.retryAfter).toISOString()}`
+        );
+      }
+      return Promise.reject(error);
+    }
 
     // If 401 and not already retrying, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       console.warn(`[API] Received 401 Unauthorized for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`);
       console.log('[API] Attempting to refresh token...');

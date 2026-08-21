@@ -7,10 +7,12 @@ export const useAuth = () => {
     refreshToken,
     isLoading,
     error,
+    rateLimitInfo,
     sendOTP,
     verifyOTP,
     refreshAccessToken,
     logout,
+    clearRateLimit,
   } = useAuthStore();
 
   const isAuthenticated = !!token && !!user;
@@ -21,10 +23,12 @@ export const useAuth = () => {
     refreshToken,
     isLoading,
     error,
+    rateLimitInfo,
     isAuthenticated,
     sendOTP,
     verifyOTP,
     refreshAccessToken,
     logout,
+    clearRateLimit,
   };
 };

@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
-
-// Determine API URL from environment variable for production deployment
-// For production: Set VITE_API_BASE_URL in your deployment environment
-// Example for Render: VITE_API_BASE_URL=https://student-learning-companion-backend.onrender.com/api
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+import { apiClient } from '../services/api';
+import { normalizeError } from '../utils/errorHandler';
 
 interface User {
   id: string;
@@ -13,12 +10,18 @@ interface User {
   profile?: any;
 }
 
+interface RateLimitInfo {
+  limiterType?: string;
+  retryAfter?: number;
+}
+
 interface AuthStore {
   user: User | null;
   token: string | null;
   refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
+  rateLimitInfo: RateLimitInfo | null;
 
   // Actions
   sendOTP: (email: string) => Promise<void>;
@@ -28,6 +31,7 @@ interface AuthStore {
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   setRefreshToken: (token: string | null) => void;
+  clearRateLimit: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set) => {
@@ -42,23 +46,36 @@ export const useAuthStore = create<AuthStore>((set) => {
     refreshToken: savedRefreshToken,
     isLoading: false,
     error: null,
+    rateLimitInfo: null,
 
     sendOTP: async (email: string) => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null, rateLimitInfo: null });
       try {
-        await axios.post(`${API_URL}/auth/send-otp`, { email });
+        await apiClient.post('/auth/send-otp', { email });
         set({ isLoading: false });
       } catch (error: any) {
-        const errorMsg = error.response?.data?.error || 'Failed to send OTP';
-        set({ isLoading: false, error: errorMsg });
-        throw new Error(errorMsg);
+        const normalized = normalizeError(error);
+        if (normalized.isRateLimited && normalized.retryAfter) {
+          set({
+            isLoading: false,
+            error: normalized.message,
+            rateLimitInfo: {
+              limiterType: normalized.limiterType,
+              retryAfter: normalized.retryAfter,
+            },
+          });
+        } else {
+          const errorMsg = normalized.message || 'Failed to send OTP';
+          set({ isLoading: false, error: errorMsg });
+        }
+        throw error;
       }
     },
 
     verifyOTP: async (email: string, otp: string, role = 'STUDENT') => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null, rateLimitInfo: null });
       try {
-        const response = await axios.post(`${API_URL}/auth/verify-otp`, {
+        const response = await apiClient.post('/auth/verify-otp', {
           email,
           otp,
           role,
@@ -66,9 +83,9 @@ export const useAuthStore = create<AuthStore>((set) => {
 
         const { accessToken, refreshToken, userId } = response.data;
 
-        // Fetch user profile
+        // Fetch user profile (use axios with manual auth header to avoid interceptor loops)
         const profileResponse = await axios.get(
-          `${API_URL}/auth/profile`,
+          `${apiClient.defaults.baseURL}/auth/profile`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
@@ -93,9 +110,21 @@ export const useAuthStore = create<AuthStore>((set) => {
           isLoading: false,
         });
       } catch (error: any) {
-        const errorMsg = error.response?.data?.error || 'OTP verification failed';
-        set({ isLoading: false, error: errorMsg });
-        throw new Error(errorMsg);
+        const normalized = normalizeError(error);
+        if (normalized.isRateLimited && normalized.retryAfter) {
+          set({
+            isLoading: false,
+            error: normalized.message,
+            rateLimitInfo: {
+              limiterType: normalized.limiterType,
+              retryAfter: normalized.retryAfter,
+            },
+          });
+        } else {
+          const errorMsg = normalized.message || 'OTP verification failed';
+          set({ isLoading: false, error: errorMsg });
+        }
+        throw error;
       }
     },
 
@@ -107,7 +136,7 @@ export const useAuthStore = create<AuthStore>((set) => {
       }
 
       try {
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, {
+        const response = await apiClient.post('/auth/refresh-token', {
           refreshToken,
         });
 
@@ -127,7 +156,7 @@ export const useAuthStore = create<AuthStore>((set) => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      set({ user: null, token: null, refreshToken: null, error: null });
+      set({ user: null, token: null, refreshToken: null, error: null, rateLimitInfo: null });
     },
 
     setUser: (user: User | null) => set({ user }),
@@ -141,5 +170,6 @@ export const useAuthStore = create<AuthStore>((set) => {
       else localStorage.removeItem('refreshToken');
       set({ refreshToken: token });
     },
+    clearRateLimit: () => set({ rateLimitInfo: null }),
   };
 });

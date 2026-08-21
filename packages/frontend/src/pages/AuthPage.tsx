@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { RateLimitAlert } from '../components/RateLimitAlert';
 
 type AuthStep = 'email' | 'otp' | 'role';
 
 export const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { sendOTP, verifyOTP, isLoading, error } = useAuth();
+  const { sendOTP, verifyOTP, isLoading, error, rateLimitInfo, clearRateLimit } = useAuth();
 
   const [step, setStep] = useState<AuthStep>('email');
   const [email, setEmail] = useState('');
@@ -73,7 +74,14 @@ export const AuthPage: React.FC = () => {
               />
             </div>
 
-            {(localError || error) && (
+            {rateLimitInfo && (
+              <RateLimitAlert
+                retryAfter={rateLimitInfo.retryAfter || Date.now() + 60000}
+                limiterType={rateLimitInfo.limiterType}
+              />
+            )}
+
+            {(localError || error) && !rateLimitInfo && (
               <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                 {localError || error}
               </div>
@@ -81,10 +89,10 @@ export const AuthPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !!rateLimitInfo}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
             >
-              {isLoading ? 'Sending...' : 'Send OTP'}
+              {isLoading ? 'Sending...' : rateLimitInfo ? 'Rate Limited - Try Later' : 'Send OTP'}
             </button>
           </form>
         )}
@@ -123,7 +131,14 @@ export const AuthPage: React.FC = () => {
               </select>
             </div>
 
-            {(localError || error) && (
+            {rateLimitInfo && (
+              <RateLimitAlert
+                retryAfter={rateLimitInfo.retryAfter || Date.now() + 60000}
+                limiterType={rateLimitInfo.limiterType}
+              />
+            )}
+
+            {(localError || error) && !rateLimitInfo && (
               <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                 {localError || error}
               </div>
@@ -131,10 +146,10 @@ export const AuthPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !!rateLimitInfo}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
             >
-              {isLoading ? 'Verifying...' : 'Verify OTP'}
+              {isLoading ? 'Verifying...' : rateLimitInfo ? 'Rate Limited - Try Later' : 'Verify OTP'}
             </button>
 
             <button
@@ -142,8 +157,10 @@ export const AuthPage: React.FC = () => {
               onClick={() => {
                 setStep('email');
                 setOtp('');
+                clearRateLimit();
               }}
-              className="w-full text-blue-600 hover:text-blue-700 font-semibold py-2 rounded-lg transition"
+              disabled={!!rateLimitInfo}
+              className="w-full text-blue-600 hover:text-blue-700 disabled:text-gray-400 font-semibold py-2 rounded-lg transition"
             >
               Change Email
             </button>
