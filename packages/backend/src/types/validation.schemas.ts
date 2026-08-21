@@ -391,3 +391,28 @@ export const paginationSchema = Joi.object({
     .optional()
     .default(0),
 });
+
+// ============ LEARNING HUB SCHEMAS ============
+
+export const learningHubSchemas = {
+  reviewQueueFilters: Joi.object({
+    filter: Joi.string()
+      .valid('all', 'today', 'this-week', 'overdue')
+      .optional()
+      .default('all')
+      .messages({
+        'any.only': 'Filter must be one of: all, today, this-week, overdue',
+      }),
+    limit: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .optional()
+      .default(50),
+    offset: Joi.number()
+      .integer()
+      .min(0)
+      .optional()
+      .default(0),
+  }),
+};
