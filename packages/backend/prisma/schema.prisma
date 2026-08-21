@@ -143,17 +143,21 @@ model CheckInSession {
   studentId               String
   date                    DateTime @default(now())
   topicId                 String?
+  taughtLogId             String?  // Link to the taught log entry (STAGE 1)
   transcript              String   // What student typed/said
   gapType                 String?  // recall, structural, sequence, application, none
   aiEvaluation            Json?    // Structured JSON from Claude (initial evaluation)
   reconfirmationEvaluation Json?   // Structured JSON from Claude (after widget practice)
   xpEarned                Int      @default(0)
+  sessionType             String   @default("FIRST_PASS") // FIRST_PASS | SPACED_REVIEW (STAGE 4)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
   student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   topic   Topic?          @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  taughtLog TaughtLog?    @relation(fields: [taughtLogId], references: [id], onDelete: SetNull)
   widgets WidgetResponse[]
+  studyActivities StudyActivity[]
 
   @@index([studentId, createdAt]) // For recent check-in lookups and daily check-in verification
   @@map("check_in_sessions")
@@ -256,6 +260,7 @@ model TaughtLog {
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  checkInSessions CheckInSession[]
 
   @@index([studentId])
   @@index([createdAt])
@@ -263,17 +268,19 @@ model TaughtLog {
 }
 
 model StudyActivity {
-  id            String   @id @default(cuid())
-  studentId     String
-  topicId       String
-  taughtLogId   String?  // Nullable: can do study activity without a taught log
-  activityType  String   @default("READ") // READ | WRITE | SOLVE
-  content       String?  // Student's written summary or solved answers
-  aiEvaluation  Json?    // {feedback, score, conceptsCovered} for WRITE type
-  createdAt     DateTime @default(now())
+  id                String   @id @default(cuid())
+  studentId         String
+  topicId           String
+  checkInSessionId  String?  // Link to check-in session if part of one
+  taughtLogId       String?  // Nullable: can do study activity without a taught log
+  activityType      String   @default("READ") // READ | WRITE | SOLVE
+  content           String?  // Student's written summary or solved answers
+  aiEvaluation      Json?    // {feedback, score, conceptsCovered} for WRITE type
+  createdAt         DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  checkInSession CheckInSession? @relation(fields: [checkInSessionId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([topicId])
