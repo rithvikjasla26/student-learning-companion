@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { llmService } from './llm.service.js';
+import { gamificationService } from './gamification.service.js';
 import { calculateSM2 } from '../utils/sm2.js';
 
 const prisma = new PrismaClient();
@@ -96,15 +97,13 @@ export const reconfirmService = {
       },
     });
 
-    // Update StudentStats with XP earned
-    await prisma.studentStats.update({
-      where: { studentId },
-      data: {
-        totalXp: { increment: xpEarned },
-        // Recalculate level (every 100 XP = 1 level)
-        level: { increment: Math.floor(xpEarned / 100) },
-      },
-    });
+    // Award XP by subject for reconfirmation
+    await gamificationService.awardXPBySubject(
+      studentId,
+      originalSession.topic.subject,
+      xpEarned,
+      `reconfirm_${originalSession.topicId}`
+    );
 
     // Persist the reconfirmation evaluation to the session
     await prisma.checkInSession.update({

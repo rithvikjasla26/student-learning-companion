@@ -3,6 +3,7 @@ import apiClient from './api';
 export interface StudentStats {
   totalXp: number;
   level: number;
+  subjectLevels: Record<string, number>;
   streakCount: number;
   lastCheckInDate: string | null;
   badges: Array<{

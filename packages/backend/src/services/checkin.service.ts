@@ -167,13 +167,13 @@ export const checkinService = {
       },
     });
 
-    // Update student stats (XP)
-    await prisma.studentStats.update({
-      where: { studentId },
-      data: {
-        totalXp: { increment: xpEarned },
-      },
-    });
+    // Award XP by subject
+    await gamificationService.awardXPBySubject(
+      studentId,
+      topic.subject,
+      xpEarned,
+      `check_in_${topicId}`
+    );
 
     // Update streak and check for badges
     await gamificationService.updateStreak(studentId);

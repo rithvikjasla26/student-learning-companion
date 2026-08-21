@@ -10,6 +10,7 @@ export const progressService = {
   async getStudentStats(studentId: string): Promise<{
     totalXp: number;
     level: number;
+    subjectLevels: Record<string, number>;
     streakCount: number;
     lastCheckInDate: Date | null;
     badges: Array<{ id: string; name: string; description: string; icon: string | null; earnedAt: Date }>;
@@ -23,6 +24,7 @@ export const progressService = {
       return {
         totalXp: 0,
         level: 1,
+        subjectLevels: {},
         streakCount: 0,
         lastCheckInDate: null,
         badges: [],
@@ -37,6 +39,7 @@ export const progressService = {
     return {
       totalXp: stats.totalXp,
       level: stats.level,
+      subjectLevels: (stats.subjectLevels as Record<string, number>) || {},
       streakCount: stats.streakCount,
       lastCheckInDate: stats.lastCheckInDate,
       badges: badges.map((sb: any) => ({

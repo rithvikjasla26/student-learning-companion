@@ -83,7 +83,15 @@ export const widgetService = {
 
     // Award XP if answer is correct
     if (isCorrect) {
-      await gamificationService.awardXP(studentId, XP_WIDGET_COMPLETE, 'widget_completion');
+      // Get the widget's topic to determine subject for subject-level XP tracking
+      const widgetWithTopic = await prisma.widget.findUnique({
+        where: { id: widgetId },
+        include: { topic: true },
+      });
+
+      const subject = widgetWithTopic?.topic?.subject || 'General';
+
+      await gamificationService.awardXPBySubject(studentId, subject, XP_WIDGET_COMPLETE, 'widget_completion');
 
       // If part of a check-in session, update session's total XP
       if (sessionId) {

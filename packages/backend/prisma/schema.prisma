@@ -228,6 +228,7 @@ model StudentStats {
   studentId       String   @unique
   totalXp         Int      @default(0)
   level           Int      @default(1)
+  subjectLevels   Json     @default("{}") // {"Science": 1, "Math": 2, ...}
   streakCount     Int      @default(0)
   lastCheckInDate DateTime?
   createdAt       DateTime @default(now())

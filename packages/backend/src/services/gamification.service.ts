@@ -50,6 +50,62 @@ export const gamificationService = {
   },
 
   /**
+   * Award XP to a student for a specific subject
+   * Updates both global XP and subject-specific XP/level tracking
+   */
+  async awardXPBySubject(
+    studentId: string,
+    subject: string,
+    amount: number,
+    reason: string
+  ): Promise<{
+    totalXp: number;
+    globalLevel: number;
+    subjectLevel: number;
+    leveledUp: boolean;
+  }> {
+    const stats = await prisma.studentStats.findUnique({
+      where: { studentId },
+    });
+
+    if (!stats) {
+      throw new Error('Student stats not found');
+    }
+
+    // Update global XP
+    const previousGlobalLevel = this.getLevel(stats.totalXp);
+    const newTotalXp = stats.totalXp + amount;
+    const newGlobalLevel = this.getLevel(newTotalXp);
+
+    // Update subject-specific XP & level
+    const subjectLevels = (stats.subjectLevels as Record<string, number>) || {};
+    const currentSubjectXp = subjectLevels[subject] || 0;
+    const newSubjectXp = currentSubjectXp + amount;
+    const previousSubjectLevel = this.getLevel(currentSubjectXp);
+    const newSubjectLevel = this.getLevel(newSubjectXp);
+
+    subjectLevels[subject] = newSubjectXp;
+
+    const updated = await prisma.studentStats.update({
+      where: { studentId },
+      data: {
+        totalXp: newTotalXp,
+        level: newGlobalLevel,
+        subjectLevels,
+      },
+    });
+
+    const leveledUp = newSubjectLevel > previousSubjectLevel;
+
+    return {
+      totalXp: updated.totalXp,
+      globalLevel: newGlobalLevel,
+      subjectLevel: newSubjectLevel,
+      leveledUp,
+    };
+  },
+
+  /**
    * Update student's daily streak
    * Increments streak if check-in was today or yesterday
    * Resets streak if gap > 1 day

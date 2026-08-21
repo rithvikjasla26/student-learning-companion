@@ -185,6 +185,21 @@ export const ProgressPage: React.FC = () => {
                 ))}
               </div>
             </div>
+
+            {/* Per-Subject Levels Section */}
+            {Object.keys(stats.subjectLevels || {}).length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Subject Levels</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {Object.entries(stats.subjectLevels || {}).map(([subject, level]) => (
+                    <div key={subject} className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-lg p-4 shadow-md">
+                      <div className="text-sm font-semibold opacity-90">{subject}</div>
+                      <div className="text-3xl font-bold mt-2">Level {level as number}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar: 1/3 width on large screens */}
