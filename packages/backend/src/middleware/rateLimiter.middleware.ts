@@ -32,7 +32,7 @@ export const globalLimiter = rateLimit({
 /**
  * Auth rate limiter
  * Stricter limits for authentication endpoints to prevent brute force attacks
- * OTP endpoints: 10 requests per 15 minutes per email/IP
+ * OTP endpoints: 10 requests per 15 minutes per email (normalized to lowercase)
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -42,13 +42,23 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
     // Use email from request body as key for OTP endpoints
-    const email = (req.body?.email as string) || ipKeyGenerator(req.ip ?? 'unknown');
-    return email || 'unknown';
+    // Normalize to lowercase to match auth.service.ts normalization
+    const email = (req.body?.email as string)?.toLowerCase().trim();
+    if (email) {
+      return email;
+    }
+    // Fallback to IP if email not provided (will fail validation anyway)
+    const ipKey = ipKeyGenerator(req.ip ?? 'unknown');
+    console.warn(`[Auth Rate Limiter] Missing email in request body, using IP fallback: ${ipKey}`);
+    return ipKey;
   },
   handler: (req: Request, res: Response) => {
     const retryAfter = req.rateLimit?.resetTime
       ? new Date(req.rateLimit.resetTime).toISOString()
       : 'in 15 minutes';
+
+    const email = (req.body?.email as string)?.toLowerCase().trim();
+    console.warn(`[Auth Rate Limiter] Rate limit exceeded for email: ${email || 'unknown'}`);
 
     res.status(429).json({
       success: false,
