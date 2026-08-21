@@ -47,6 +47,7 @@ model Student {
   stats                  StudentStats?
   linkedParentStudents   ParentStudent[]
   taughtLogs             TaughtLog[]
+  studyActivities        StudyActivity[]
 
   @@map("students")
 }
@@ -108,6 +109,7 @@ model Topic {
   widgets          Widget[]
   checkInSessions  CheckInSession[]
   taughtLogs       TaughtLog[]
+  studyActivities  StudyActivity[]
 
   @@unique([subject, chapter, subtopic])
   @@map("topics")
@@ -258,4 +260,22 @@ model TaughtLog {
   @@index([studentId])
   @@index([createdAt])
   @@map("taught_logs")
+}
+
+model StudyActivity {
+  id            String   @id @default(cuid())
+  studentId     String
+  topicId       String
+  taughtLogId   String?  // Nullable: can do study activity without a taught log
+  activityType  String   @default("READ") // READ | WRITE | SOLVE
+  content       String?  // Student's written summary or solved answers
+  aiEvaluation  Json?    // {feedback, score, conceptsCovered} for WRITE type
+  createdAt     DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([topicId])
+  @@map("study_activities")
 }

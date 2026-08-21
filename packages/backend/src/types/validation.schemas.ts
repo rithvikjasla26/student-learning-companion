@@ -252,6 +252,65 @@ export const progressSchemas = {
   }),
 };
 
+// ============ STUDYACTIVITY SCHEMAS ============
+
+export const studyactivitySchemas = {
+  getPrompt: Joi.object({
+    topicId: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Topic ID is required',
+      }),
+  }),
+
+  submit: Joi.object({
+    topicId: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Topic ID is required',
+      }),
+    activityType: Joi.string()
+      .valid('READ', 'WRITE', 'SOLVE')
+      .required()
+      .messages({
+        'any.required': 'Activity type is required',
+        'any.only': 'Activity type must be READ, WRITE, or SOLVE',
+      }),
+    content: Joi.string()
+      .max(5000)
+      .allow('')
+      .optional()
+      .trim()
+      .messages({
+        'string.max': 'Content must not exceed 5000 characters',
+      }),
+    taughtLogId: Joi.string()
+      .optional()
+      .messages({
+        'string.base': 'Taught log ID must be a string',
+      }),
+  }),
+
+  getHistory: Joi.object({
+    topicId: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Topic ID is required',
+      }),
+    limit: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .optional()
+      .default(20)
+      .messages({
+        'number.base': 'Limit must be a number',
+        'number.min': 'Limit must be at least 1',
+        'number.max': 'Limit cannot exceed 100',
+      }),
+  }),
+};
+
 // ============ TAUGHTLOG SCHEMAS ============
 
 export const taughtlogSchemas = {
