@@ -1,4 +1,4 @@
-import { api } from './api';
+import apiClient from './api';
 
 export interface ReviewQueueTopic {
   id: string;
@@ -56,7 +56,7 @@ export const learningHubService = {
   async getReviewQueue(
     filter: 'all' | 'today' | 'this-week' | 'overdue' = 'all'
   ): Promise<ReviewQueueResponse> {
-    const response = await api.get('/learning-hub/review-queue', {
+    const response = await apiClient.get('/learning-hub/review-queue', {
       params: { filter },
     });
     return response.data;
@@ -66,7 +66,7 @@ export const learningHubService = {
    * Get quick stats for dashboard header
    */
   async getQuickStats(): Promise<QuickStats> {
-    const response = await api.get('/learning-hub/quick-stats');
+    const response = await apiClient.get('/learning-hub/quick-stats');
     return response.data;
   },
 
@@ -74,7 +74,7 @@ export const learningHubService = {
    * Get hierarchical topic structure for selection dropdowns
    */
   async getTopicsHierarchy(): Promise<TopicHierarchyResponse> {
-    const response = await api.get('/learning-hub/topics-hierarchy');
+    const response = await apiClient.get('/learning-hub/topics-hierarchy');
     return response.data;
   },
 
@@ -89,7 +89,7 @@ export const learningHubService = {
     coverageType: 'INTRODUCED' | 'PRACTICE' | 'REVISION',
     homeworkAssigned: boolean = false
   ): Promise<{ taughtLogId: string; createdAt: string }> {
-    const response = await api.post('/taught-log', {
+    const response = await apiClient.post('/taught-log', {
       subject,
       chapter,
       topicId,
