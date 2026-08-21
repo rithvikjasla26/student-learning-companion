@@ -4,6 +4,7 @@ import { CheckInPage } from './pages/CheckInPage';
 import { TaughtLogPage } from './pages/TaughtLogPage';
 import { StudyActivityPage } from './pages/StudyActivityPage';
 import { ProgressPage } from './pages/ProgressPage';
+import { GoalsPage } from './pages/GoalsPage';
 import { ParentDashboardPage } from './pages/ParentDashboardPage';
 import { LinkChildPage } from './pages/LinkChildPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
@@ -112,6 +113,14 @@ export default function App() {
           element={
             <ProtectedRoute requiredRole="STUDENT">
               <StudyActivityPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/goals"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <GoalsPage />
             </ProtectedRoute>
           }
         />

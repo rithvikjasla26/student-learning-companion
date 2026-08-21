@@ -48,6 +48,8 @@ model Student {
   linkedParentStudents   ParentStudent[]
   taughtLogs             TaughtLog[]
   studyActivities        StudyActivity[]
+  largerGoals            LargerGoal[]
+  smallerGoals           SmallerGoal[]
 
   @@map("students")
 }
@@ -285,4 +287,41 @@ model StudyActivity {
   @@index([studentId])
   @@index([topicId])
   @@map("study_activities")
+}
+
+model LargerGoal {
+  id        String   @id @default(cuid())
+  studentId String
+  title     String   // e.g., "Score 90%+ in Boards"
+  subject   String?  // Nullable: goal can span all subjects
+  targetDate DateTime // Goal deadline
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  smallerGoals SmallerGoal[]
+
+  @@index([studentId])
+  @@index([targetDate])
+  @@map("larger_goals")
+}
+
+model SmallerGoal {
+  id            String   @id @default(cuid())
+  studentId     String
+  largerGoalId  String?  // Nullable FK: can be standalone
+  title         String   // e.g., "Master Photosynthesis"
+  topicIds      String[] // Array of topic IDs this goal covers
+  targetDate    DateTime // Goal deadline
+  status        String   @default("ACTIVE") // ACTIVE | COMPLETED | MISSED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  largerGoal  LargerGoal? @relation(fields: [largerGoalId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([largerGoalId])
+  @@index([targetDate])
+  @@map("smaller_goals")
 }

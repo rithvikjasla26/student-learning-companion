@@ -11,6 +11,7 @@ import progressRoutes from './routes/progress.routes.js';
 import parentRoutes from './routes/parent.routes.js';
 import reconfirmRoutes from './routes/reconfirm.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
+import goalsRoutes from './routes/goals.routes.js';
 import { initializeScheduler } from './jobs/scheduler.job.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware.js';
 import {
@@ -65,6 +66,7 @@ app.use('/api/progress', studentApiLimiter, progressRoutes); // Standard API lim
 app.use('/api/parent', parentLinkLimiter, parentRoutes); // Parent linking limiting
 app.use('/api/reconfirm', studentApiLimiter, reconfirmRoutes); // Standard API limiting
 app.use('/api/scheduler', studentApiLimiter, schedulerRoutes); // Standard API limiting
+app.use('/api/goals', studentApiLimiter, goalsRoutes); // Standard API limiting
 
 // 404 handler (must be before error handler)
 app.use(notFoundHandler);
