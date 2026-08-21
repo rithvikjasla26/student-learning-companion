@@ -1,6 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import { reconfirmService } from '../services/reconfirm.service.js';
 import { AuthError } from '../types/errors.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// Helper to get student ID from user ID
+async function getStudentId(userId: string): Promise<string> {
+  const student = await prisma.student.findUnique({
+    where: { userId },
+  });
+
+  if (!student) {
+    throw new AuthError('Student profile not found');
+  }
+
+  return student.id;
+}
 
 export const reconfirmController = {
   /**
@@ -14,9 +30,10 @@ export const reconfirmController = {
       }
 
       const { explanation, sessionId } = req.body;
+      const studentId = await getStudentId(req.user.userId);
 
       const result = await reconfirmService.submitReconfirmation(
-        req.user.userId,
+        studentId,
         sessionId,
         explanation
       );

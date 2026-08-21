@@ -1,6 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import { schedulerService } from '../services/scheduler.service.js';
 import { AuthError } from '../types/errors.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// Helper to get student ID from user ID
+async function getStudentId(userId: string): Promise<string> {
+  const student = await prisma.student.findUnique({
+    where: { userId },
+  });
+
+  if (!student) {
+    throw new AuthError('Student profile not found');
+  }
+
+  return student.id;
+}
 
 export const schedulerController = {
   /**
@@ -13,7 +29,8 @@ export const schedulerController = {
         throw new AuthError('Unauthorized');
       }
 
-      const topicData = await schedulerService.pickTodaysTopic(req.user.userId);
+      const studentId = await getStudentId(req.user.userId);
+      const topicData = await schedulerService.pickTodaysTopic(studentId);
 
       if (!topicData) {
         res.status(204).json({

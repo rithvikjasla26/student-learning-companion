@@ -1,6 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import { widgetService } from '../services/widget.service.js';
 import { AuthError } from '../types/errors.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// Helper to get student ID from user ID
+async function getStudentId(userId: string): Promise<string> {
+  const student = await prisma.student.findUnique({
+    where: { userId },
+  });
+
+  if (!student) {
+    throw new AuthError('Student profile not found');
+  }
+
+  return student.id;
+}
 
 export const widgetController = {
   /**
@@ -28,9 +44,10 @@ export const widgetController = {
       }
 
       const { widgetId, studentAnswer, sessionId } = req.body;
+      const studentId = await getStudentId(req.user.userId);
 
       const result = await widgetService.submitWidgetResponse(
-        req.user.userId,
+        studentId,
         widgetId,
         studentAnswer,
         sessionId
@@ -51,7 +68,8 @@ export const widgetController = {
         throw new AuthError('Unauthorized');
       }
 
-      const performance = await widgetService.getWidgetPerformance(req.user.userId);
+      const studentId = await getStudentId(req.user.userId);
+      const performance = await widgetService.getWidgetPerformance(studentId);
       res.json(performance);
     } catch (error) {
       next(error);

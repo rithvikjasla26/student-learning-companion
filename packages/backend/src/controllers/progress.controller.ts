@@ -1,6 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import { progressService } from '../services/progress.service.js';
 import { AuthError } from '../types/errors.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// Helper to get student ID from user ID
+async function getStudentId(userId: string): Promise<string> {
+  const student = await prisma.student.findUnique({
+    where: { userId },
+  });
+
+  if (!student) {
+    throw new AuthError('Student profile not found');
+  }
+
+  return student.id;
+}
 
 export const progressController = {
   /**
@@ -12,7 +28,8 @@ export const progressController = {
         throw new AuthError('Unauthorized');
       }
 
-      const stats = await progressService.getStudentStats(req.user.userId);
+      const studentId = await getStudentId(req.user.userId);
+      const stats = await progressService.getStudentStats(studentId);
       res.json(stats);
     } catch (error) {
       next(error);
@@ -28,7 +45,8 @@ export const progressController = {
         throw new AuthError('Unauthorized');
       }
 
-      const topicProgress = await progressService.getTopicProgress(req.user.userId);
+      const studentId = await getStudentId(req.user.userId);
+      const topicProgress = await progressService.getTopicProgress(studentId);
       res.json({ topics: topicProgress });
     } catch (error) {
       next(error);
@@ -45,10 +63,11 @@ export const progressController = {
         throw new AuthError('Unauthorized');
       }
 
+      const studentId = await getStudentId(req.user.userId);
       const limit = (req.query.limit as any) || 20;
       const offset = (req.query.offset as any) || 0;
 
-      const history = await progressService.getCheckInHistory(req.user.userId, limit, offset);
+      const history = await progressService.getCheckInHistory(studentId, limit, offset);
       res.json(history);
     } catch (error) {
       next(error);
@@ -64,7 +83,8 @@ export const progressController = {
         throw new AuthError('Unauthorized');
       }
 
-      const trend = await progressService.getWeeklyTrend(req.user.userId);
+      const studentId = await getStudentId(req.user.userId);
+      const trend = await progressService.getWeeklyTrend(studentId);
       res.json({ trend });
     } catch (error) {
       next(error);

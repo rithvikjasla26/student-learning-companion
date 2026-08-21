@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { checkinService } from '../services/checkin.service.js';
 import { llmService } from '../services/llm.service.js';
 import { AuthError } from '../types/errors.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export const checkinController = {
   /**
@@ -13,7 +16,16 @@ export const checkinController = {
         throw new AuthError('Unauthorized');
       }
 
-      const topic = await checkinService.startCheckIn(req.user.userId);
+      // Get student ID from user ID
+      const student = await prisma.student.findUnique({
+        where: { userId: req.user.userId },
+      });
+
+      if (!student) {
+        throw new AuthError('Student profile not found');
+      }
+
+      const topic = await checkinService.startCheckIn(student.id);
       res.json(topic);
     } catch (error) {
       next(error);
@@ -30,9 +42,18 @@ export const checkinController = {
         throw new AuthError('Unauthorized');
       }
 
+      // Get student ID from user ID
+      const student = await prisma.student.findUnique({
+        where: { userId: req.user.userId },
+      });
+
+      if (!student) {
+        throw new AuthError('Student profile not found');
+      }
+
       const { topicId, explanation } = req.body;
       const result = await checkinService.evaluateExplanation(
-        req.user.userId,
+        student.id,
         topicId,
         explanation
       );
@@ -53,10 +74,19 @@ export const checkinController = {
         throw new AuthError('Unauthorized');
       }
 
+      // Get student ID from user ID
+      const student = await prisma.student.findUnique({
+        where: { userId: req.user.userId },
+      });
+
+      if (!student) {
+        throw new AuthError('Student profile not found');
+      }
+
       const limit = (req.query.limit as any) || 20;
       const offset = (req.query.offset as any) || 0;
 
-      const result = await checkinService.getCheckInHistory(req.user.userId, limit, offset);
+      const result = await checkinService.getCheckInHistory(student.id, limit, offset);
       res.json(result);
     } catch (error) {
       next(error);
