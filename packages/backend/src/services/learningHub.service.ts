@@ -195,7 +195,7 @@ export const learningHubService = {
 
     const totalMastery =
       topicProgress.length > 0
-        ? Math.round(topicProgress.reduce((sum, t: any) => sum + t.masteryScore, 0) / topicProgress.length)
+        ? Math.round(topicProgress.reduce((sum: number, t: any) => sum + t.masteryScore, 0) / topicProgress.length)
         : 0;
 
     return {
