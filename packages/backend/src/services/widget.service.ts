@@ -1,6 +1,10 @@
 import { PrismaClient, WidgetType } from '@prisma/client';
+import { gamificationService } from './gamification.service.js';
 
 const prisma = new PrismaClient();
+
+// XP awarded for completing a widget correctly
+const XP_WIDGET_COMPLETE = 5;
 
 export const widgetService = {
   /**
@@ -76,6 +80,19 @@ export const widgetService = {
         timeSpentMs: 0,
       },
     });
+
+    // Award XP if answer is correct
+    if (isCorrect) {
+      await gamificationService.awardXP(studentId, XP_WIDGET_COMPLETE, 'widget_completion');
+
+      // If part of a check-in session, update session's total XP
+      if (sessionId) {
+        await prisma.checkInSession.update({
+          where: { id: sessionId },
+          data: { xpEarned: { increment: XP_WIDGET_COMPLETE } },
+        });
+      }
+    }
 
     return {
       isCorrect,
