@@ -30,6 +30,12 @@ export const Header: React.FC = () => {
           {user.role === 'STUDENT' && (
             <>
               <button
+                onClick={() => navigate('/learning-hub')}
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                🎓 Dashboard
+              </button>
+              <button
                 onClick={() => navigate('/progress')}
                 className="text-gray-700 hover:text-blue-600 font-medium transition"
               >

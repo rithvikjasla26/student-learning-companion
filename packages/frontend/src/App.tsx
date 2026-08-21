@@ -5,6 +5,7 @@ import { TaughtLogPage } from './pages/TaughtLogPage';
 import { StudyActivityPage } from './pages/StudyActivityPage';
 import { ProgressPage } from './pages/ProgressPage';
 import { GoalsPage } from './pages/GoalsPage';
+import { LearningHubPage } from './pages/LearningHubPage';
 import { ParentDashboardPage } from './pages/ParentDashboardPage';
 import { LinkChildPage } from './pages/LinkChildPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
@@ -81,6 +82,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/learning-hub"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <LearningHubPage />
             </ProtectedRoute>
           }
         />
