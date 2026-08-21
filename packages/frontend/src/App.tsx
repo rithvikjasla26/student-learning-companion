@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthPage } from './pages/AuthPage';
 import { CheckInPage } from './pages/CheckInPage';
+import { TaughtLogPage } from './pages/TaughtLogPage';
 import { ProgressPage } from './pages/ProgressPage';
 import { ParentDashboardPage } from './pages/ParentDashboardPage';
 import { LinkChildPage } from './pages/LinkChildPage';
@@ -94,6 +95,14 @@ export default function App() {
           element={
             <ProtectedRoute requiredRole="STUDENT">
               <CheckInPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/taught-log"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <TaughtLogPage />
             </ProtectedRoute>
           }
         />

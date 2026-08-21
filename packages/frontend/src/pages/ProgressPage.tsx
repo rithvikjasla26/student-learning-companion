@@ -92,12 +92,20 @@ export const ProgressPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-4xl font-bold text-gray-900">Your Progress</h1>
-            <button
-              onClick={() => navigate('/checkin')}
-              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105"
-            >
-              📝 Daily Check-in
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate('/taught-log')}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105"
+              >
+                📚 Log Taught
+              </button>
+              <button
+                onClick={() => navigate('/checkin')}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105"
+              >
+                📝 Daily Check-in
+              </button>
+            </div>
           </div>
 
           {/* Stats Cards */}
