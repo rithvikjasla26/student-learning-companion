@@ -93,7 +93,7 @@ export const CheckInPage: React.FC = () => {
   };
 
   const handleBackToProgress = () => {
-    navigate('/progress');
+    navigate('/learning-hub');
   };
 
   const handleStartNew = () => {
@@ -388,7 +388,7 @@ export const CheckInPage: React.FC = () => {
                 onClick={handleBackToProgress}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
               >
-                Back to Progress
+                ← Back to Learning Hub
               </button>
             </div>
           )}

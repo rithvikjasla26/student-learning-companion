@@ -267,6 +267,20 @@ export const ProgressPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Learning Hub CTA */}
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md p-6 text-white">
+              <h3 className="text-lg font-semibold mb-2">📋 Review Topics</h3>
+              <p className="text-sm opacity-90 mb-4">
+                Manage your spaced repetition and see what's due for review
+              </p>
+              <button
+                onClick={() => navigate('/learning-hub')}
+                className="w-full px-4 py-2 bg-white text-blue-600 rounded font-semibold hover:bg-gray-100 transition"
+              >
+                Go to Learning Hub →
+              </button>
+            </div>
           </div>
         </div>
       </div>
