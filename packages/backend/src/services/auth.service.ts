@@ -16,28 +16,36 @@ export interface AuthPayload {
 export const authService = {
   /**
    * Generate and send OTP to email
-   * For MVP, OTP is hardcoded as "123456" and logged to console
+   * DEMO MODE: OTP is hardcoded as "123456" for easy testing
+   * In production, integrate with SendGrid or similar email service
    */
   async sendOTP(email: string): Promise<{ success: boolean; message: string }> {
     const normalizedEmail = email.toLowerCase().trim();
-    const otp = '123456'; // Hardcoded for MVP
+    const otp = '123456'; // Hardcoded for DEMO - use SendGrid in production
     const expiresAt = Date.now() + parseInt(env.OTP_EXPIRY_MINUTES) * 60 * 1000;
 
     otpStore[normalizedEmail] = { code: otp, expiresAt };
 
-    // In production, use SendGrid or similar
-    console.log(`\n📧 OTP SENT for ${normalizedEmail}: ${otp}`);
-    console.log(`⏰ Expires in ${env.OTP_EXPIRY_MINUTES} minutes`);
-    console.log(`📊 OTP Store now contains: ${Object.keys(otpStore).join(', ')}\n`);
+    // DEMO MODE: Log to console. In production, use SendGrid or similar
+    console.log(`
+╔════════════════════════════════════════════════════════════════╗
+║ 📧 DEMO OTP - Use this to login:                              ║
+╠════════════════════════════════════════════════════════════════╣
+║ Email: ${normalizedEmail.padEnd(56)} ║
+║ OTP Code: ${otp.padEnd(52)} ║
+║ Expires in: ${env.OTP_EXPIRY_MINUTES} minutes${' '.padEnd(42)} ║
+╚════════════════════════════════════════════════════════════════╝
+`);
 
     return {
       success: true,
-      message: 'OTP sent to email',
+      message: `OTP sent to ${email} (Demo: use code ${otp})`,
     };
   },
 
   /**
    * Verify OTP and create/get user
+   * DEMO MODE: Accepts hardcoded "123456" OTP
    */
   async verifyOTP(
     email: string,
@@ -47,26 +55,36 @@ export const authService = {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Debug logging
-    console.log(`\n🔍 Verifying OTP for: ${normalizedEmail}`);
-    console.log(`📊 OTP Store keys: ${Object.keys(otpStore).join(', ') || 'EMPTY'}`);
+    console.log(`
+╔════════════════════════════════════════════════════════════════╗
+║ 🔐 OTP VERIFICATION ATTEMPT                                    ║
+╠════════════════════════════════════════════════════════════════╣
+║ Email: ${normalizedEmail.padEnd(56)} ║
+║ Provided OTP: ${otp.padEnd(52)} ║
+║ OTP Store State: ${(Object.keys(otpStore).join(', ') || 'EMPTY').padEnd(45)} ║
+╚════════════════════════════════════════════════════════════════╝
+`);
 
     // Check if OTP exists and is valid
     const storedOTP = otpStore[normalizedEmail];
     if (!storedOTP) {
       console.error(`❌ OTP not found for: ${normalizedEmail}`);
+      console.error(`   Available emails in store: ${Object.keys(otpStore).join(', ') || 'NONE'}`);
       throw new Error('OTP not found. Please request a new OTP.');
     }
 
-    console.log(`✓ OTP found, verifying...\n`);
-
     if (storedOTP.code !== otp) {
+      console.error(`❌ Invalid OTP - Expected: ${storedOTP.code}, Got: ${otp}`);
       throw new Error('Invalid OTP');
     }
 
     if (storedOTP.expiresAt < Date.now()) {
       delete otpStore[normalizedEmail];
+      console.error(`❌ OTP expired for: ${normalizedEmail}`);
       throw new Error('OTP expired. Please request a new OTP.');
     }
+
+    console.log(`✅ OTP verified successfully for: ${normalizedEmail}\n`);
 
     // Delete used OTP
     delete otpStore[normalizedEmail];
@@ -119,6 +137,18 @@ export const authService = {
       { expiresIn: '30d' } as any
     );
 
+    console.log(`
+╔════════════════════════════════════════════════════════════════╗
+║ ✅ USER LOGGED IN SUCCESSFULLY                                 ║
+╠════════════════════════════════════════════════════════════════╣
+║ User ID: ${user.id.padEnd(56)} ║
+║ Email: ${normalizedEmail.padEnd(56)} ║
+║ Role: ${role.padEnd(56)} ║
+║ Access Token Expires In: ${(env.JWT_EXPIRES_IN || '7d').padEnd(44)} ║
+║ Refresh Token Expires In: 30d${' '.padEnd(47)} ║
+╚════════════════════════════════════════════════════════════════╝
+`);
+
     return {
       accessToken,
       refreshToken,
@@ -147,8 +177,11 @@ export const authService = {
         { expiresIn: env.JWT_EXPIRES_IN } as any
       );
 
+      console.log(`🔄 Token refreshed for user: ${user.email}`);
+
       return { accessToken };
     } catch (error) {
+      console.error(`❌ Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw new Error('Invalid or expired refresh token');
     }
   },

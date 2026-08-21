@@ -18,6 +18,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.warn(`[Auth] Missing authorization header for ${req.method} ${req.path}`);
     return res.status(401).json({ error: 'Missing or invalid authorization header' });
   }
 
@@ -31,9 +32,12 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     };
 
     req.user = decoded;
+    console.log(`[Auth] ✓ Token verified for ${decoded.email} - ${req.method} ${req.path}`);
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.warn(`[Auth] ✗ Token verification failed: ${errorMsg} - ${req.method} ${req.path}`);
+    return res.status(401).json({ error: 'Invalid or expired token', details: errorMsg });
   }
 };
 

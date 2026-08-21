@@ -31,12 +31,13 @@ export const globalLimiter = rateLimit({
 
 /**
  * Auth rate limiter
- * Stricter limits for authentication endpoints to prevent brute force attacks
- * OTP endpoints: 10 requests per 15 minutes per email (normalized to lowercase)
+ * For DEMO mode: Lenient limits to allow easy testing
+ * Production: Should be stricter (10 requests per 15 minutes)
+ * OTP endpoints: 100 requests per 15 minutes per email (demo mode)
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 requests per windowMs
+  max: 100, // 100 requests per windowMs (very lenient for demo)
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -49,7 +50,7 @@ export const authLimiter = rateLimit({
     }
     // Fallback to IP if email not provided (will fail validation anyway)
     const ipKey = ipKeyGenerator(req.ip ?? 'unknown');
-    console.warn(`[Auth Rate Limiter] Missing email in request body, using IP fallback: ${ipKey}`);
+    console.log(`[Auth Rate Limiter] No email provided, using IP: ${ipKey}`);
     return ipKey;
   },
   handler: (req: Request, res: Response) => {

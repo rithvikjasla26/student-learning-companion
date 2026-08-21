@@ -31,10 +31,13 @@ apiClient.interceptors.response.use(
     // If 401 and not already retrying, try to refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.warn(`[API] Received 401 Unauthorized for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`);
+      console.log('[API] Attempting to refresh token...');
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
+          console.error('[API] No refresh token found in localStorage');
           throw new Error('No refresh token');
         }
 
@@ -44,12 +47,14 @@ apiClient.interceptors.response.use(
 
         const { accessToken } = response.data;
         localStorage.setItem('accessToken', accessToken);
+        console.log('[API] ✓ Token refreshed successfully');
 
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed, clear auth
+        console.error('[API] ✗ Token refresh failed, logging out user');
         const store = useAuthStore.getState();
         store.logout();
         return Promise.reject(refreshError);
