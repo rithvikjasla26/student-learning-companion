@@ -19,6 +19,15 @@ export const checkinService = {
     subtopic: string;
     expectedConcepts: string[];
   }> {
+    // Verify student exists
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student) {
+      throw new Error('Student not found. Please complete your profile first.');
+    }
+
     // Get student's next due topic
     const nextTopic = await prisma.studentTopicProgress.findFirst({
       where: {
