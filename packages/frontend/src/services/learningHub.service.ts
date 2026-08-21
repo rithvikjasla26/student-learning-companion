@@ -89,7 +89,7 @@ export const learningHubService = {
     coverageType: 'INTRODUCED' | 'PRACTICE' | 'REVISION',
     homeworkAssigned: boolean = false
   ): Promise<{ taughtLogId: string; createdAt: string }> {
-    const response = await apiClient.post('/taught-log', {
+    const response = await apiClient.post('/taught-log/create', {
       subject,
       chapter,
       topicId,
