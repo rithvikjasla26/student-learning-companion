@@ -100,6 +100,12 @@ export const ProgressPage: React.FC = () => {
                 📚 Log Taught
               </button>
               <button
+                onClick={() => navigate('/goals')}
+                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105"
+              >
+                🎯 Goals
+              </button>
+              <button
                 onClick={() => navigate('/checkin')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105"
               >

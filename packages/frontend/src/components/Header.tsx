@@ -36,6 +36,12 @@ export const Header: React.FC = () => {
                 Progress
               </button>
               <button
+                onClick={() => navigate('/goals')}
+                className="text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                Goals
+              </button>
+              <button
                 onClick={() => navigate('/checkin')}
                 className="text-gray-700 hover:text-blue-600 font-medium transition"
               >

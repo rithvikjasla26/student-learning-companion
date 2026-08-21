@@ -175,6 +175,147 @@ async function main() {
     }
   }
 
+  // Create sample TaughtLog and goal records for demo purposes
+  // First, get or create a demo student
+  let demoStudent = await prisma.student.findFirst({
+    where: {
+      name: 'Demo Student',
+    },
+  });
+
+  if (!demoStudent) {
+    // Create a demo user and student
+    const demoUser = await prisma.user.create({
+      data: {
+        email: 'demo@example.com',
+        role: 'STUDENT',
+      },
+    });
+
+    demoStudent = await prisma.student.create({
+      data: {
+        userId: demoUser.id,
+        name: 'Demo Student',
+        gradeLevel: 10,
+        subjects: ['Science', 'Math', 'Physics', 'Chemistry', 'Biology'],
+      },
+    });
+
+    console.log('Created demo student');
+  }
+
+  // Initialize student stats if not present
+  let studentStats = await prisma.studentStats.findUnique({
+    where: { studentId: demoStudent.id },
+  });
+
+  if (!studentStats) {
+    studentStats = await prisma.studentStats.create({
+      data: {
+        studentId: demoStudent.id,
+        totalXp: 0,
+        level: 1,
+        streakCount: 0,
+      },
+    });
+    console.log('Created student stats for demo student');
+  }
+
+  // Initialize student topic progress for all topics
+  const allTopics = await prisma.topic.findMany();
+  for (const topic of allTopics) {
+    const existing = await prisma.studentTopicProgress.findUnique({
+      where: {
+        studentId_topicId: {
+          studentId: demoStudent.id,
+          topicId: topic.id,
+        },
+      },
+    });
+
+    if (!existing) {
+      await prisma.studentTopicProgress.create({
+        data: {
+          studentId: demoStudent.id,
+          topicId: topic.id,
+          masteryScore: Math.floor(Math.random() * 70), // Random mastery 0-70
+          confidenceScore: 50,
+          nextDueAt: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+    }
+  }
+  console.log(`Initialized topic progress for demo student`);
+
+  // Create sample TaughtLog entries
+  const sampleTaughtLogs = allTopics.slice(0, 3).map((topic) => ({
+    studentId: demoStudent.id,
+    subject: topic.subject,
+    chapter: topic.chapter,
+    topicId: topic.id,
+    source: 'SCHOOL',
+    coverageType: 'INTRODUCED',
+    homeworkAssigned: true,
+  }));
+
+  for (const log of sampleTaughtLogs) {
+    const existing = await prisma.taughtLog.findFirst({
+      where: {
+        studentId: log.studentId,
+        topicId: log.topicId,
+      },
+    });
+
+    if (!existing) {
+      await prisma.taughtLog.create({
+        data: log,
+      });
+    }
+  }
+  console.log(`Created sample TaughtLog entries`);
+
+  // Create sample goal records
+  const existingLargerGoal = await prisma.largerGoal.findFirst({
+    where: { studentId: demoStudent.id },
+  });
+
+  if (!existingLargerGoal) {
+    const largerGoal = await prisma.largerGoal.create({
+      data: {
+        studentId: demoStudent.id,
+        title: 'Score 90%+ in Science Board Exams',
+        subject: 'Science',
+        targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      },
+    });
+
+    // Create sample smaller goals
+    const topicIds = allTopics.slice(0, 3).map((t) => t.id);
+    await prisma.smallerGoal.create({
+      data: {
+        studentId: demoStudent.id,
+        largerGoalId: largerGoal.id,
+        title: 'Master Photosynthesis and Respiration',
+        topicIds: topicIds.slice(0, 2),
+        targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        status: 'ACTIVE',
+      },
+    });
+
+    await prisma.smallerGoal.create({
+      data: {
+        studentId: demoStudent.id,
+        largerGoalId: largerGoal.id,
+        title: 'Ace Chemical Reactions',
+        topicIds: topicIds.slice(2, 3),
+        targetDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+        status: 'ACTIVE',
+      },
+    });
+
+    console.log(`Created sample goal records`);
+  }
+
   console.log('Seeding complete!');
 }
 
